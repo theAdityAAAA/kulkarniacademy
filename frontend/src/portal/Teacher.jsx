@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { CalendarDays, ClipboardCheck, RefreshCw, Users } from 'lucide-react';
+import { CalendarDays, ClipboardCheck, Library, RefreshCw, ShieldCheck, Users } from 'lucide-react';
+import QuestionBank from './QuestionBank';
+import TeacherTests from './TeacherTests';
 import { firstOf, must, supabase } from './supabase';
 import { JoinButton, Notice, Spinner, classState, useNow } from './shared';
 import { dateTimeLabel, placeName, relativeLabel, timeLabel } from './time';
@@ -10,6 +12,8 @@ import TeacherStudents from './TeacherStudents';
 const tabs = [
   { id: 'classes', label: 'Classes', icon: CalendarDays },
   { id: 'homework', label: 'Homework', icon: ClipboardCheck },
+  { id: 'tests', label: 'Tests', icon: ShieldCheck },
+  { id: 'questions', label: 'Question bank', icon: Library },
   { id: 'students', label: 'Students', icon: Users },
 ];
 
@@ -24,12 +28,15 @@ export default function Teacher({ profile }) {
     setRefreshing(true);
     try {
       const since = new Date(Date.now() - 14 * 86400000).toISOString();
-      const [students, classes, homework] = await Promise.all([
+      const [students, classes, homework, questions, tests] = await Promise.all([
         supabase.from('profiles').select('*').eq('role', 'student').order('full_name').then(must),
         supabase.from('classes').select('*').gte('starts_at', since).order('starts_at').then(must),
-        supabase.from('homework').select('*, submissions(*)').order('created_at', { ascending: false }).limit(300).then(must),
+        supabase.from('homework').select('*, submissions(*)').order('created_at', { ascending: false }).limit(500).then(must),
+        // Tests need supabase/002_tests.sql. If it hasn't been run yet, the rest of the dashboard still works.
+        supabase.from('questions').select('*').order('created_at', { ascending: false }).limit(2000).then(({ data: rows, error: e }) => (e ? null : rows)),
+        supabase.from('tests').select('*, test_attempts(*)').order('opens_at', { ascending: false }).limit(500).then(({ data: rows, error: e }) => (e ? null : rows)),
       ]);
-      setData({ students, classes, homework: homework.map((h) => ({ ...h, submission: firstOf(h.submissions) })) });
+      setData({ students, classes, questions: questions ?? [], tests: tests ?? [], testsReady: questions !== null && tests !== null, homework: homework.map((h) => ({ ...h, submission: firstOf(h.submissions) })) });
       setError('');
     } catch (err) {
       setError(`Couldn’t load your data: ${err.message}`);
@@ -39,7 +46,12 @@ export default function Teacher({ profile }) {
   }, []);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { const onFocus = () => load(); window.addEventListener('focus', onFocus); return () => window.removeEventListener('focus', onFocus); }, [load]);
+  // Refresh when coming back to the tab, but not while a form is being filled in.
+  useEffect(() => {
+    const onFocus = () => { if (!document.activeElement?.closest('form')) load(); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [load]);
   const choose = (id) => { setTab(id); history.replaceState(null, '', `#${id}`); };
 
   if (!data) return error ? <Notice>{error}</Notice> : <Spinner/>;
@@ -79,7 +91,10 @@ export default function Teacher({ profile }) {
     <div role="tabpanel">
       {tab === 'classes' && <TeacherClasses students={data.students} classes={data.classes} reload={load} now={now}/>}
       {tab === 'homework' && <TeacherHomework students={data.students} homework={data.homework} reload={load}/>}
-      {tab === 'students' && <TeacherStudents students={data.students} classes={data.classes} reload={load} now={now}/>}
+      {(tab === 'tests' || tab === 'questions') && !data.testsReady && <Notice>Tests aren’t set up in the database yet. In Supabase, open SQL Editor, paste the file <code>supabase/002_tests.sql</code>, click Run, then press Refresh here.</Notice>}
+      {tab === 'tests' && data.testsReady && <TeacherTests students={data.students} questions={data.questions} tests={data.tests} reload={load} now={now}/>}
+      {tab === 'questions' && data.testsReady && <QuestionBank questions={data.questions} students={data.students} reload={load}/>}
+      {tab === 'students' && <TeacherStudents students={data.students} classes={data.classes} homework={data.homework} tests={data.tests} reload={load} now={now}/>}
     </div>
   </div>;
 }

@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle2, FileText, Loader2, Video } from 'lucide-reac
 import { fileLabel, signedUrl } from './supabase';
 
 export const JOIN_EARLY_MINUTES = 10;
+export const TEST_SUBJECTS = ['Maths', 'Physics', 'Chemistry', 'Biology', 'Science', 'Logical reasoning'];
 
 export function useNow(intervalMs = 30000) {
   const [now, setNow] = useState(Date.now());

@@ -6,6 +6,7 @@ import { Notice, Spinner, useAction } from './shared';
 import Teacher from './Teacher';
 import Student from './Student';
 import './portal.css';
+import './tests.css';
 
 const WHATSAPP = 'https://wa.me/919373438129?text=' + encodeURIComponent('Hi! I need help signing in to the Kulkarni Academy student portal.');
 

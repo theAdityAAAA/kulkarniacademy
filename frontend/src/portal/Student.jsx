@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { BookOpenCheck, CalendarDays, CheckCircle2, ClipboardList, RefreshCw, Upload, Video } from 'lucide-react';
+import { BookOpenCheck, CalendarDays, CheckCircle2, ClipboardList, LineChart, RefreshCw, ShieldCheck, Upload, Video } from 'lucide-react';
+import ProgressChart, { progressPoints } from './ProgressChart';
+import StudentTests from './StudentTests';
+import TestRunner from './TestRunner';
 import { ACCEPTED_FILES, checkFile, firstOf, must, supabase, uploadFile } from './supabase';
 import { Empty, FileLink, JoinButton, Notice, Spinner, classState, platformName, useAction, useNow } from './shared';
 import { dateTimeLabel, dayLabel, localZone, placeName, relativeLabel, timeLabel } from './time';
@@ -76,16 +79,18 @@ export default function Student({ profile }) {
   const [error, setError] = useState('');
   const [tab, setTab] = useState('todo');
   const [refreshing, setRefreshing] = useState(false);
+  const [runningTest, setRunningTest] = useState(null);
 
   const load = useCallback(async () => {
     setRefreshing(true);
     try {
       const since = new Date(Date.now() - 3 * 3600000).toISOString();
-      const [classes, homework] = await Promise.all([
+      const [classes, homework, tests] = await Promise.all([
         supabase.from('classes').select('*').gte('starts_at', since).order('starts_at').limit(50).then(must),
-        supabase.from('homework').select('*, submissions(*)').order('created_at', { ascending: false }).limit(100).then(must),
+        supabase.from('homework').select('*, submissions(*)').order('created_at', { ascending: false }).limit(200).then(must),
+        supabase.from('tests').select('*, test_attempts(*)').order('opens_at', { ascending: false }).limit(100).then(({ data: rows, error: e }) => (e ? [] : rows)),
       ]);
-      setData({ classes, homework: homework.map((h) => ({ ...h, submission: firstOf(h.submissions) })) });
+      setData({ classes, tests, homework: homework.map((h) => ({ ...h, submission: firstOf(h.submissions) })) });
       setError('');
     } catch (err) {
       setError(`Couldn’t load your classes: ${err.message}`);
@@ -94,8 +99,14 @@ export default function Student({ profile }) {
     }
   }, []);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { const onFocus = () => load(); window.addEventListener('focus', onFocus); return () => window.removeEventListener('focus', onFocus); }, [load]);
+  useEffect(() => {
+    if (runningTest) return undefined; // don't reload underneath a running test
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [load, runningTest]);
 
+  if (runningTest) return <TestRunner test={runningTest} onClose={() => { setRunningTest(null); load(); }}/>;
   if (!data) return error ? <Notice>{error}</Notice> : <Spinner/>;
 
   const active = data.classes.filter((c) => classState(c, now) !== 'ended');
@@ -115,6 +126,17 @@ export default function Student({ profile }) {
     <Notice>{error}</Notice>
 
     {next ? <NextClass cls={next} now={now}/> : <section className="next-class"><div><span className="eyebrow">YOUR NEXT CLASS</span><h2>No class booked yet</h2><p className="muted">Your teacher will add your next class here.</p></div><Video size={34} className="muted"/></section>}
+
+    <div className="split">
+      <section className="card">
+        <h2 className="card-title"><ShieldCheck size={20}/>Tests</h2>
+        <StudentTests tests={data.tests} now={now} onStart={setRunningTest}/>
+      </section>
+      <section className="card">
+        <h2 className="card-title"><LineChart size={20}/>My progress</h2>
+        <ProgressChart points={progressPoints(data.homework, data.tests)} title="Your scores"/>
+      </section>
+    </div>
 
     <div className="split">
       <section className="card">

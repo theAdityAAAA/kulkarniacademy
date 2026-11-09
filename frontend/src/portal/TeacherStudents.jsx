@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Copy, KeyRound, MessageCircle, Pencil, UserPlus, Users, Wand2 } from 'lucide-react';
+import { Copy, KeyRound, LineChart, MessageCircle, Pencil, UserPlus, Users, Wand2 } from 'lucide-react';
+import ProgressChart, { progressPoints } from './ProgressChart';
 import { api, must, supabase } from './supabase';
 import { Empty, Notice, useAction } from './shared';
 import { commonZones, dateTimeLabel, isValidZone, otherZones, placeName, timeLabel } from './time';
@@ -71,8 +72,8 @@ function AddStudent({ reload, onCreated }) {
   </form>;
 }
 
-function StudentCard({ student, login, upcoming, now, reload }) {
-  const [mode, setMode] = useState(null); // 'edit' | 'password'
+function StudentCard({ student, login, upcoming, now, reload, points }) {
+  const [mode, setMode] = useState(null); // 'edit' | 'password' | 'progress'
   const [form, setForm] = useState({ full_name: student.full_name, grade: student.grade ?? '', board: student.board ?? '', timezone: student.timezone });
   const [newPassword, setNewPassword] = useState('');
   const [resetDone, setResetDone] = useState(null);
@@ -112,9 +113,11 @@ function StudentCard({ student, login, upcoming, now, reload }) {
       <div><dt>Last signed in</dt><dd>{login?.last_sign_in_at ? dateTimeLabel(login.last_sign_in_at) : 'Never'}</dd></div>
     </dl>
     <div className="row">
+      <button className="btn btn-ghost btn-small" onClick={() => setMode(mode === 'progress' ? null : 'progress')} aria-pressed={mode === 'progress'}><LineChart size={15}/>Progress</button>
       <button className="btn btn-ghost btn-small" onClick={() => { setMode(mode === 'edit' ? null : 'edit'); setResetDone(null); }}><Pencil size={15}/>Edit details</button>
       <button className="btn btn-ghost btn-small" onClick={() => { setMode(mode === 'password' ? null : 'password'); setNewPassword(generatePassword()); setResetDone(null); }}><KeyRound size={15}/>Reset password</button>
     </div>
+    {mode === 'progress' && <div className="inset"><ProgressChart points={points} title={`${student.full_name.split(' ')[0]}’s scores`}/></div>}
     {mode === 'edit' && <form className="form inset" onSubmit={save}>
       <label>Name<input value={form.full_name} onChange={set('full_name')} required maxLength={80}/></label>
       <div className="grid-2">
@@ -133,7 +136,7 @@ function StudentCard({ student, login, upcoming, now, reload }) {
   </li>;
 }
 
-export default function TeacherStudents({ students, classes, reload, now }) {
+export default function TeacherStudents({ students, classes, homework = [], tests = [], reload, now }) {
   const [logins, setLogins] = useState({});
   const [loginError, setLoginError] = useState('');
   const loadLogins = useCallback(async () => {
@@ -151,6 +154,7 @@ export default function TeacherStudents({ students, classes, reload, now }) {
       <h2 className="card-title"><Users size={20}/>Your students</h2>
       {loginError && <Notice>{`${loginError} Adding students and resetting passwords need the backend.`}</Notice>}
       {students.length ? <ul className="student-list">{students.map((s) => <StudentCard key={s.id} student={s} login={logins[s.id]} now={now} reload={reload}
+        points={progressPoints(homework.filter((h) => h.student_id === s.id), tests.filter((t) => t.student_id === s.id))}
         upcoming={classes.filter((c) => c.student_id === s.id && c.status !== 'cancelled' && new Date(c.starts_at).getTime() > now).length}/>)}</ul>
         : <Empty icon={Users} title="No students yet">Create the first login with the form.</Empty>}
     </section>

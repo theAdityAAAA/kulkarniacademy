@@ -1,5 +1,13 @@
 import { createServer } from 'node:http';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
+import { IMPORT_PATH, ImportError, importQuestions } from './importQuestions.js';
+
+// Load backend/.env no matter which folder the server is started from.
+// (On Vercel there is no .env file; settings come from Environment Variables instead.)
+const envFile = fileURLToPath(new URL('../.env', import.meta.url));
+if (existsSync(envFile)) process.loadEnvFile(envFile);
 
 // Kulkarni Academy API.
 // Everything students and the teacher read or write goes straight to Supabase from the
@@ -45,7 +53,7 @@ function readJson(request, limit = 10_000) {
 }
 
 async function requireTeacher(request) {
-  if (!admin) throw new HttpError(503, 'The server is missing SUPABASE_URL or SUPABASE_SECRET_KEY.');
+  if (!admin) throw new HttpError(503, 'The backend has no Supabase keys. Check backend/.env, then restart the backend.');
   const token = request.headers.authorization?.match(/^Bearer (.+)$/)?.[1];
   if (!token) throw new HttpError(401, 'Please sign in again.');
   const { data, error } = await admin.auth.getUser(token);
@@ -99,8 +107,22 @@ async function listLogins() {
   return { logins };
 }
 
+async function importFromFile(body) {
+  const path = text(body.path, 80);
+  const subject = text(body.subject, 60);
+  if (!IMPORT_PATH.test(path)) throw new HttpError(400, 'Upload the file first.');
+  if (!subject) throw new HttpError(400, 'Choose the subject of these questions.');
+  try {
+    return await importQuestions({ admin, path, subject, grade: text(body.grade, 60), topicHint: text(body.topicHint, 200) });
+  } catch (error) {
+    if (error instanceof ImportError) throw new HttpError(error.status, error.message);
+    throw error;
+  }
+}
+
 const routes = [
-  { method: 'GET', path: /^\/api\/health$/, handler: async () => ({ status: 'ok', service: 'kulkarni-academy-api', supabase: Boolean(admin) }) },
+  { method: 'GET', path: /^\/api\/health$/, handler: async () => ({ status: 'ok', service: 'kulkarni-academy-api', supabase: Boolean(admin), ai_import: Boolean(process.env.ANTHROPIC_API_KEY) }) },
+  { method: 'POST', path: /^\/api\/admin\/import-questions$/, handler: async (req) => { await requireTeacher(req); return importFromFile(await readJson(req)); } },
   { method: 'GET', path: /^\/api\/admin\/logins$/, handler: async (req) => { await requireTeacher(req); return listLogins(); } },
   { method: 'POST', path: /^\/api\/admin\/students$/, handler: async (req) => { await requireTeacher(req); return createStudent(await readJson(req)); }, status: 201 },
   {
@@ -139,5 +161,6 @@ const server = createServer(async (request, response) => {
 
 server.listen(port, '127.0.0.1', () => {
   console.log(`Kulkarni Academy API: http://127.0.0.1:${port}`);
-  if (!admin) console.warn('Warning: SUPABASE_URL / SUPABASE_SECRET_KEY are not set. Student logins can’t be created.');
+  if (admin) console.log('Connected to Supabase: student logins can be created.');
+  else console.warn(`Warning: SUPABASE_URL / SUPABASE_SECRET_KEY are not set (looked in ${envFile}). Student logins can’t be created.`);
 });
