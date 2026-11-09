@@ -1,1 +1,17 @@
-{"name":"kulkarni-academy-backend","private":true,"version":"0.1.0","type":"module","scripts":{"dev":"node --watch src/server.js","start":"node src/server.js","check":"node --check src/server.js"},"engines":{"node":">=22"}}
+{
+  "name": "kulkarni-academy-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch src/server.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "check": "node --check src/server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0"
+  }
+}

@@ -1,0 +1,85 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { CalendarDays, ClipboardCheck, RefreshCw, Users } from 'lucide-react';
+import { firstOf, must, supabase } from './supabase';
+import { JoinButton, Notice, Spinner, classState, useNow } from './shared';
+import { dateTimeLabel, placeName, relativeLabel, timeLabel } from './time';
+import TeacherClasses from './TeacherClasses';
+import TeacherHomework from './TeacherHomework';
+import TeacherStudents from './TeacherStudents';
+
+const tabs = [
+  { id: 'classes', label: 'Classes', icon: CalendarDays },
+  { id: 'homework', label: 'Homework', icon: ClipboardCheck },
+  { id: 'students', label: 'Students', icon: Users },
+];
+
+export default function Teacher({ profile }) {
+  const now = useNow();
+  const [tab, setTab] = useState(() => (location.hash.slice(1) && tabs.some((t) => t.id === location.hash.slice(1)) ? location.hash.slice(1) : 'classes'));
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const since = new Date(Date.now() - 14 * 86400000).toISOString();
+      const [students, classes, homework] = await Promise.all([
+        supabase.from('profiles').select('*').eq('role', 'student').order('full_name').then(must),
+        supabase.from('classes').select('*').gte('starts_at', since).order('starts_at').then(must),
+        supabase.from('homework').select('*, submissions(*)').order('created_at', { ascending: false }).limit(300).then(must),
+      ]);
+      setData({ students, classes, homework: homework.map((h) => ({ ...h, submission: firstOf(h.submissions) })) });
+      setError('');
+    } catch (err) {
+      setError(`Couldn’t load your data: ${err.message}`);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => { const onFocus = () => load(); window.addEventListener('focus', onFocus); return () => window.removeEventListener('focus', onFocus); }, [load]);
+  const choose = (id) => { setTab(id); history.replaceState(null, '', `#${id}`); };
+
+  if (!data) return error ? <Notice>{error}</Notice> : <Spinner/>;
+
+  const studentsById = Object.fromEntries(data.students.map((s) => [s.id, s]));
+  const nextClass = data.classes.find((c) => ['live', 'soon', 'later'].includes(classState(c, now)));
+  const weekEnd = now + 7 * 86400000;
+  const thisWeek = data.classes.filter((c) => c.status !== 'cancelled' && new Date(c.starts_at).getTime() >= now && new Date(c.starts_at).getTime() < weekEnd).length;
+  const toMark = data.homework.filter((h) => h.submission && !h.marked_at).length;
+  const nextStudent = nextClass && studentsById[nextClass.student_id];
+
+  return <div className="stack-lg">
+    <section className="welcome">
+      <div><span className="eyebrow">TEACHER DASHBOARD</span><h1>Hello, {profile.full_name.split(' ')[0]}.</h1></div>
+      <button className="btn btn-ghost btn-small" onClick={load} disabled={refreshing}><RefreshCw size={16} className={refreshing ? 'spin' : ''}/>Refresh</button>
+    </section>
+    <Notice>{error}</Notice>
+
+    <section className="stats">
+      <article className="stat stat-feature">
+        <span className="stat-label">Next class</span>
+        {nextClass ? <>
+          <strong>{nextStudent?.full_name ?? 'Student'} · {nextClass.subject}</strong>
+          <p>{dateTimeLabel(nextClass.starts_at)} your time ({relativeLabel(nextClass.starts_at, now)}){nextStudent && <><br/>{timeLabel(nextClass.starts_at, nextStudent.timezone)} for them in {placeName(nextStudent.timezone)}</>}</p>
+          <JoinButton cls={nextClass} now={now} teacher/>
+        </> : <p>No classes scheduled.</p>}
+      </article>
+      <article className="stat"><span className="stat-label">Classes in the next 7 days</span><strong className="stat-number">{thisWeek}</strong></article>
+      <article className="stat"><button className="stat-button" onClick={() => choose('homework')}><span className="stat-label">Homework to mark</span><strong className="stat-number">{toMark}</strong></button></article>
+      <article className="stat"><button className="stat-button" onClick={() => choose('students')}><span className="stat-label">Students</span><strong className="stat-number">{data.students.length}</strong></button></article>
+    </section>
+
+    <nav className="tabs" role="tablist" aria-label="Dashboard sections">
+      {tabs.map(({ id, label, icon: Icon }) => <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'tab active' : 'tab'} onClick={() => choose(id)}><Icon size={17}/>{label}{id === 'homework' && toMark > 0 && <span className="tab-count">{toMark}</span>}</button>)}
+    </nav>
+
+    <div role="tabpanel">
+      {tab === 'classes' && <TeacherClasses students={data.students} classes={data.classes} reload={load} now={now}/>}
+      {tab === 'homework' && <TeacherHomework students={data.students} homework={data.homework} reload={load}/>}
+      {tab === 'students' && <TeacherStudents students={data.students} classes={data.classes} reload={load} now={now}/>}
+    </div>
+  </div>;
+}

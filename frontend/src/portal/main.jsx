@@ -1,0 +1,122 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { ArrowLeft, KeyRound, LogIn, LogOut, MessageCircle, X } from 'lucide-react';
+import { configured, supabase } from './supabase';
+import { Notice, Spinner, useAction } from './shared';
+import Teacher from './Teacher';
+import Student from './Student';
+import './portal.css';
+
+const WHATSAPP = 'https://wa.me/919373438129?text=' + encodeURIComponent('Hi! I need help signing in to the Kulkarni Academy student portal.');
+
+function Brand() {
+  return <a className="portal-brand" href="/" aria-label="Kulkarni Academy website"><span className="portal-logo"><img src="/kulkarni-academy-logo.png" alt="" width="300" height="538"/></span><span>Kulkarni<small>ACADEMY</small></span></a>;
+}
+
+function Login() {
+  const { busy, error, run } = useAction();
+  const submit = (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    run(async () => {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: String(data.get('email')).trim(), password: String(data.get('password')) });
+      if (signInError) throw new Error(signInError.message === 'Invalid login credentials' ? 'That email or password is not right. Please check and try again.' : signInError.message);
+    });
+  };
+  return <main className="login-page">
+    <div className="login-card">
+      <Brand/>
+      <span className="eyebrow">STUDENT PORTAL</span>
+      <h1>Welcome back.</h1>
+      <p className="muted">Sign in to see your classes and homework.</p>
+      <form onSubmit={submit} className="form">
+        <label>Email<input name="email" type="email" autoComplete="username" required/></label>
+        <label>Password<input name="password" type="password" autoComplete="current-password" required/></label>
+        <Notice>{error}</Notice>
+        <button className="btn btn-primary btn-wide" disabled={busy}><LogIn size={18}/>{busy ? 'Signing in…' : 'Sign in'}</button>
+      </form>
+      <p className="login-help">Forgot your password? <a href={WHATSAPP} target="_blank" rel="noopener noreferrer"><MessageCircle size={15}/> Ask your teacher</a></p>
+    </div>
+    <a className="back-link" href="/"><ArrowLeft size={16}/> Back to the website</a>
+  </main>;
+}
+
+function ChangePassword({ onClose }) {
+  const dialog = useRef(null);
+  const { busy, error, setError, run } = useAction();
+  const [done, setDone] = useState(false);
+  useEffect(() => { dialog.current.showModal(); }, []);
+  const submit = (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const password = String(data.get('password'));
+    if (password !== data.get('confirm')) { setError('The two passwords don’t match.'); return; }
+    run(async () => {
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) throw updateError;
+      setDone(true);
+    });
+  };
+  return <dialog ref={dialog} className="modal" onClose={onClose} onCancel={onClose}>
+    <button className="icon-btn modal-close" onClick={onClose} aria-label="Close"><X size={20}/></button>
+    <h2>Change password</h2>
+    {done ? <><Notice kind="success">Your password has been changed.</Notice><button className="btn btn-primary btn-wide" onClick={onClose}>Done</button></> :
+      <form className="form" onSubmit={submit}>
+        <label>New password<input name="password" type="password" minLength={8} maxLength={72} autoComplete="new-password" required/></label>
+        <label>Type it again<input name="confirm" type="password" minLength={8} maxLength={72} autoComplete="new-password" required/></label>
+        <p className="hint">At least 8 characters.</p>
+        <Notice>{error}</Notice>
+        <button className="btn btn-primary btn-wide" disabled={busy}>{busy ? 'Saving…' : 'Save new password'}</button>
+      </form>}
+  </dialog>;
+}
+
+function Shell({ profile, children }) {
+  const [changing, setChanging] = useState(false);
+  return <>
+    <header className="portal-header">
+      <div className="portal-header-inner">
+        <Brand/>
+        <div className="portal-user">
+          <span className="portal-user-name">{profile.full_name}<small>{profile.role === 'teacher' ? 'Teacher' : 'Student'}</small></span>
+          <button className="icon-btn" onClick={() => setChanging(true)} aria-label="Change password" title="Change password"><KeyRound size={19}/></button>
+          <button className="btn btn-ghost btn-small" onClick={() => supabase.auth.signOut()}><LogOut size={16}/>Sign out</button>
+        </div>
+      </div>
+    </header>
+    <main className="portal-main">{children}</main>
+    {changing && <ChangePassword onClose={() => setChanging(false)}/>}
+  </>;
+}
+
+function App() {
+  const [session, setSession] = useState(undefined);
+  const [profile, setProfile] = useState(undefined);
+  const userId = session?.user?.id;
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) { setProfile(undefined); return; }
+    let live = true;
+    supabase.from('profiles').select('*').eq('id', userId).maybeSingle().then(({ data }) => live && setProfile(data ?? null));
+    return () => { live = false; };
+  }, [userId]);
+
+  if (session === undefined || (session && profile === undefined)) return <Spinner/>;
+  if (!session) return <Login/>;
+  if (!profile) {
+    return <main className="login-page"><div className="login-card"><Brand/><h1>Almost there.</h1><p className="muted">Your login works, but your student account hasn’t been set up yet. Please message your teacher.</p><button className="btn btn-ghost btn-wide" onClick={() => supabase.auth.signOut()}><LogOut size={16}/>Sign out</button></div></main>;
+  }
+  return <Shell profile={profile}>{profile.role === 'teacher' ? <Teacher profile={profile}/> : <Student profile={profile}/>}</Shell>;
+}
+
+function NotConfigured() {
+  return <main className="login-page"><div className="login-card"><Brand/><h1>Portal not connected</h1><p className="muted">Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> to <code>frontend/.env</code>, then restart <code>npm run dev</code>.</p></div></main>;
+}
+
+createRoot(document.getElementById('root')).render(configured ? <App/> : <NotConfigured/>);
