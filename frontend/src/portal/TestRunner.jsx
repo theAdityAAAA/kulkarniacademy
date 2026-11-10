@@ -36,7 +36,6 @@ function Finished({ view, onClose }) {
     {view.reason === 'exits' && <Notice>The test was submitted because you left it {view.exits} times.</Notice>}
     {view.reason === 'no_questions' ? <p className="muted">Your teacher hasn’t added questions for this test yet. Please let them know.</p> : <>
       <div className="runner-score"><strong>{pct}%</strong><span>{view.correct} of {view.asked} correct</span></div>
-      <p className="muted">Hardest level reached: <strong>{LEVELS[view.level]}</strong></p>
       <p className="muted small">You can see the answers and explanations after {dateTimeLabel(view.review_at)}.</p>
     </>}
     <button className="btn btn-primary" onClick={onClose}>Back to the portal</button>
@@ -128,7 +127,7 @@ export default function TestRunner({ test, onClose }) {
       <span className="eyebrow">{test.subject.toUpperCase()} TEST</span>
       <h1>{test.title}</h1>
       <ul className="rules">
-        <li><strong>{test.question_count} questions.</strong> They start at Medium and get harder when you answer correctly.</li>
+        <li><strong>{test.question_count} question{test.question_count === 1 ? '' : 's'}</strong>, one at a time.</li>
         <li><strong>Every question has its own timer.</strong> When it runs out, your selected answer is sent automatically.</li>
         <li><strong>No going back</strong> to earlier questions.</li>
         <li><strong>Stay on this screen.</strong> Leaving full screen or switching apps is recorded. After {test.max_exits} times, the test submits itself.</li>
@@ -141,7 +140,6 @@ export default function TestRunner({ test, onClose }) {
     {running && <div className="runner-card runner-question">
       <div className="q-top">
         <span className="q-count">Question {view.position} of {view.total}</span>
-        <span className={`badge level-${question.difficulty}`}>{LEVELS[question.difficulty]}</span>
         <Timer key={question.id} deadline={deadline} limit={question.time_limit}/>
       </div>
       <progress className="q-progress" value={view.position - 1} max={view.total}/>

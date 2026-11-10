@@ -3,7 +3,7 @@ import { CheckCircle2, ClipboardCheck, Lock, PlayCircle, Timer, XCircle } from '
 import { firstOf, supabase } from './supabase';
 import { Empty, Notice, useAction } from './shared';
 import { dateTimeLabel, relativeLabel } from './time';
-import { LEVELS, questionImageUrl } from './TestRunner';
+import { questionImageUrl } from './TestRunner';
 
 const percent = (a) => (Number(a?.max_points) ? Math.round((Number(a.points) / Number(a.max_points)) * 100) : 0);
 
@@ -20,7 +20,7 @@ function Review({ test }) {
     const given = it.kind === 'mcq' ? (it.given_option != null ? it.options[it.given_option] : null) : it.given_number;
     const correct = it.kind === 'mcq' ? it.options[it.correct_option] : it.correct_number;
     return <li key={it.position} className={it.is_correct ? 'right' : 'wrong'}>
-      <div className="review-head">{it.is_correct ? <CheckCircle2 size={18}/> : <XCircle size={18}/>}<span className={`badge level-${it.difficulty}`}>{LEVELS[it.difficulty]}</span></div>
+      <div className="review-head">{it.is_correct ? <CheckCircle2 size={18}/> : <XCircle size={18}/>}<strong>Question {it.position}</strong></div>
       <p className="pre">{it.prompt}</p>
       {it.image_path && <img className="q-image small" src={questionImageUrl(it.image_path)} alt="Diagram for this question"/>}
       <p className="small">Your answer: <strong>{it.timed_out && given == null ? 'No answer (time ran out)' : String(given ?? '—')}</strong>{!it.is_correct && <> · Correct answer: <strong>{String(correct)}</strong></>}</p>
