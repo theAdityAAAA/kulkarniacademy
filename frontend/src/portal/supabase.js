@@ -11,6 +11,15 @@ export const MAX_FILE_BYTES = 10 * 1024 * 1024;
 export const ACCEPTED_FILES = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif';
 const acceptedTypes = new Set(ACCEPTED_FILES.split(','));
 
+/** Random id for file names. crypto.randomUUID is missing on older iPhones/iPads (iOS before 15.4), so fall back. */
+export function newId() {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
 /** Turns technical sign-in errors into something a student understands. */
 export function friendlyError(message = '') {
   if (/jwt|expired|invalid claim|refresh token|not authenticated/i.test(message)) return 'Your sign-in has expired. Please refresh the page and sign in again.';
@@ -67,7 +76,7 @@ export async function uploadFile(folder, original) {
   const problem = checkFile(file);
   if (problem) throw new Error(problem);
   const safeName = file.name.replace(/[^\w.-]+/g, '_').slice(-80) || 'file';
-  const path = `${folder}/${crypto.randomUUID()}-${safeName}`;
+  const path = `${folder}/${newId()}-${safeName}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type || undefined, upsert: false });
   if (error) throw new Error(`Upload failed for “${file.name}”: ${error.message}`);
   return path;

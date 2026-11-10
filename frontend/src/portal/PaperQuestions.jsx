@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, BookPlus, Check, Pencil, Trash2 } from 'lucide-react';
-import { must, supabase } from './supabase';
+import { must, newId, supabase } from './supabase';
 import { Notice, useAction } from './shared';
 import { questionImageUrl } from './TestRunner';
 
@@ -14,7 +14,7 @@ const blank = (last = {}) => ({ kind: last.kind ?? 'mcq', prompt: '', topic: las
 
 export async function uploadQuestionImage(file) {
   if (file.size > 5 * 1024 * 1024) throw new Error(`The image “${file.name}” is bigger than 5 MB.`);
-  const path = `${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, '_').slice(-60)}`;
+  const path = `${newId()}-${file.name.replace(/[^\w.-]+/g, '_').slice(-60)}`;
   const { error } = await supabase.storage.from('question-images').upload(path, file, { contentType: file.type });
   if (error) throw new Error(`Image upload failed: ${error.message}`);
   return path;

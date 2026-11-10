@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { IMPORT_PATH, ImportError, importQuestions } from './importQuestions.js';
 import { blocked, clientIp, hit } from './rateLimit.js';
+import { cleanupStorage } from './cleanupStorage.js';
 
 // Load backend/.env no matter which folder the server is started from.
 // (On Vercel there is no .env file; settings come from Environment Variables instead.)
@@ -168,6 +169,15 @@ const routes = [
   { method: 'GET', path: /^\/api\/health$/, handler: async () => ({ status: 'ok', service: 'kulkarni-academy-api', supabase: Boolean(admin), ai_import: Boolean(process.env.ANTHROPIC_API_KEY) }) },
   { method: 'POST', path: /^\/api\/admin\/import-questions$/, handler: async (req) => { await requireTeacher(req); limit(req, 'import'); return importFromFile(await readJson(req)); } },
   { method: 'GET', path: /^\/api\/admin\/logins$/, handler: async (req) => { await requireTeacher(req); return listLogins(); } },
+  {
+    method: 'POST', path: /^\/api\/admin\/cleanup-storage$/,
+    handler: async (req) => {
+      await requireTeacher(req);
+      const body = await readJson(req);
+      const minAgeHours = Number.isFinite(body.minAgeHours) ? Math.min(720, Math.max(0, body.minAgeHours)) : 24;
+      try { return await cleanupStorage(admin, { dryRun: body.dryRun !== false, minAgeHours }); } catch (error) { throw new HttpError(502, error.message); }
+    },
+  },
   { method: 'POST', path: /^\/api\/admin\/students$/, handler: async (req) => { await requireTeacher(req); return createStudent(await readJson(req)); }, status: 201 },
   {
     method: 'POST', path: new RegExp(`^/api/admin/students/(${UUID})/password$`),

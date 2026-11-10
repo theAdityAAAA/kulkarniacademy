@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { AlertTriangle, Download, FileSpreadsheet, FileText, ImagePlus, Loader2, Sparkles } from 'lucide-react';
-import { api, must, supabase } from './supabase';
+import { api, must, newId, supabase } from './supabase';
 import { Notice, useAction } from './shared';
 import { TIME_LIMITS, timeLabel, uploadQuestionImage } from './PaperQuestions';
 
@@ -179,7 +179,7 @@ export default function ImportQuestions({ paper, nextPosition, reload, onDone })
     const ext = (file.name.split('.').pop() || '').toLowerCase();
     if (!['pdf', 'jpg', 'jpeg', 'png', 'webp'].includes(ext)) { setError('Use a PDF, JPG, PNG or WEBP file.'); return; }
     run(async () => {
-      const path = `${crypto.randomUUID()}.${ext}`;
+      const path = `${newId()}.${ext}`;
       const { error: upErr } = await supabase.storage.from('question-imports').upload(path, file, { contentType: file.type || undefined });
       if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
       const result = await api('/admin/import-questions', { method: 'POST', body: { path, subject: paper.subject, grade: paper.grade ?? '', topicHint } });

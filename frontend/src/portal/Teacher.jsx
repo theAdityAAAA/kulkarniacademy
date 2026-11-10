@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { CalendarDays, ClipboardCheck, RefreshCw, ShieldCheck, Users } from 'lucide-react';
 import TestPapers from './TestPapers';
-import { firstOf, must, supabase } from './supabase';
+import { api, firstOf, must, supabase } from './supabase';
 import { JoinButton, Notice, Spinner, classState, useNow } from './shared';
 import { dateTimeLabel, placeName, relativeLabel, timeLabel } from './time';
 import TeacherClasses from './TeacherClasses';
@@ -46,6 +46,20 @@ export default function Teacher({ profile }) {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  // Once a day, quietly delete files nothing uses any more (from deleted homework, tests or students).
+  // Same safety rules as the Storage button: only unused files, never anything from the last 24 hours.
+  useEffect(() => {
+    const KEY = 'ka-last-storage-clean';
+    let last = 0;
+    try { last = Number(localStorage.getItem(KEY)) || 0; } catch { /* private mode: just run */ }
+    if (Date.now() - last < 24 * 3600000) return;
+    const id = setTimeout(() => {
+      api('/admin/cleanup-storage', { method: 'POST', body: { dryRun: false } })
+        .then(() => { try { localStorage.setItem(KEY, String(Date.now())); } catch { /* ignore */ } })
+        .catch(() => { /* not important: try again next time */ });
+    }, 5000); // after the dashboard has loaded, so it never slows it down
+    return () => clearTimeout(id);
+  }, []);
   // Refresh when coming back to the tab, but not while a form is being filled in.
   useEffect(() => {
     let last = Date.now();

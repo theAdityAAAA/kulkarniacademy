@@ -315,3 +315,5 @@
 .reschedule{display:grid;gap:12px}
 .badge.moved{justify-self:start;margin-top:4px}
 .moved-note{font-size:14px;font-weight:600;opacity:.9}
+
+.storage-report{display:grid;gap:8px;justify-items:start;padding:12px 14px;border-radius:10px;background:var(--bg);font-size:15px}

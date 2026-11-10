@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Copy, FileText, KeyRound, LineChart, MessageCircle, Pencil, UserPlus, Users, Wand2 } from 'lucide-react';
+import { Copy, FileText, HardDrive, KeyRound, LineChart, MessageCircle, Pencil, Trash2, UserPlus, Users, Wand2 } from 'lucide-react';
 import ParentReport from './ParentReport';
 import ProgressChart, { progressPoints } from './ProgressChart';
 import { api, must, supabase } from './supabase';
@@ -141,6 +141,32 @@ function StudentCard({ student, login, upcoming, now, reload, homework, tests })
   </li>;
 }
 
+const megabytes = (bytes) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
+
+/** Deleting homework, tests or students removes their records, but files live in separate storage.
+ *  This finds files nothing uses any more and deletes them, after showing you first. */
+function StorageCleanup() {
+  const [report, setReport] = useState(null);
+  const [done, setDone] = useState(null);
+  const { busy, error, run } = useAction();
+  const check = () => run(async () => { setDone(null); setReport(await api('/admin/cleanup-storage', { method: 'POST', body: { dryRun: true } })); });
+  const clean = () => run(async () => { const r = await api('/admin/cleanup-storage', { method: 'POST', body: { dryRun: false } }); setDone(r); setReport(null); });
+  return <section className="card storage-card">
+    <h2 className="card-title"><HardDrive size={20}/>Storage</h2>
+    <p className="hint">When you delete homework, a test or a student, their files (worksheets, photos, diagrams) are cleaned up automatically once a day when you open this dashboard. Files from the last 24 hours are never touched. You can also check now.</p>
+    {report && <div className="storage-report">
+      <p>You have <strong>{report.totalFiles} files</strong> ({megabytes(report.totalBytes)}) of the 1 GB in Supabase’s free plan.</p>
+      {report.unusedFiles
+        ? <><p><strong>{report.unusedFiles} file{report.unusedFiles > 1 ? 's are' : ' is'} no longer used</strong> by anything ({megabytes(report.unusedBytes)}).</p>
+            <button className="btn btn-primary btn-small" onClick={clean} disabled={busy}><Trash2 size={15}/>{busy ? 'Deleting…' : `Delete ${report.unusedFiles} unused file${report.unusedFiles > 1 ? 's' : ''}`}</button></>
+        : <p>Nothing to clean up. Every file is still in use. 👍</p>}
+    </div>}
+    {done && <Notice kind="success">{`Deleted ${done.removed} unused file${done.removed === 1 ? '' : 's'} and freed ${megabytes(done.unusedBytes)}.`}</Notice>}
+    <Notice>{error}</Notice>
+    {!report && <button className="btn btn-ghost btn-small" onClick={check} disabled={busy}><HardDrive size={15}/>{busy ? 'Checking…' : 'Check for unused files'}</button>}
+  </section>;
+}
+
 export default function TeacherStudents({ students, classes, homework = [], tests = [], reload, now }) {
   const [logins, setLogins] = useState({});
   const [loginError, setLoginError] = useState('');
@@ -154,7 +180,10 @@ export default function TeacherStudents({ students, classes, homework = [], test
   useEffect(() => { loadLogins(); }, [loadLogins]);
 
   return <div className="split">
-    <AddStudent reload={reload} onCreated={loadLogins}/>
+    <div className="stack">
+      <AddStudent reload={reload} onCreated={loadLogins}/>
+      <StorageCleanup/>
+    </div>
     <section className="card">
       <h2 className="card-title"><Users size={20}/>Your students</h2>
       {loginError && <Notice>{`${loginError} Adding students and resetting passwords need the backend.`}</Notice>}
