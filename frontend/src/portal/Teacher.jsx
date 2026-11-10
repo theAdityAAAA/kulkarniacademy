@@ -48,7 +48,8 @@ export default function Teacher({ profile }) {
   useEffect(() => { load(); }, [load]);
   // Refresh when coming back to the tab, but not while a form is being filled in.
   useEffect(() => {
-    const onFocus = () => { if (!document.activeElement?.closest('form')) load(); };
+    let last = Date.now();
+    const onFocus = () => { if (Date.now() - last > 60000 && !document.activeElement?.closest('form')) { last = Date.now(); load(); } };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
   }, [load]);

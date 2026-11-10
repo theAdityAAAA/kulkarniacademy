@@ -138,6 +138,7 @@ function RescheduleForm({ cls, student, onDone, reload }) {
     const zone = when.zone === 'student' && student ? student.timezone : localZone;
     const newStart = zonedToDate(`${when.date}T${when.time}`, zone);
     const moved = newStart.getTime() !== start.getTime();
+    if (moved && newStart.getTime() < Date.now() - 5 * 60000 && !confirm('That time is in the past. Move the class there anyway?')) return;
     run(async () => {
       must(await supabase.from('classes').update({
         starts_at: newStart.toISOString(), duration_minutes: Number(minutes), meeting_url: url.href, topic: topic.trim() || null, status: 'scheduled',

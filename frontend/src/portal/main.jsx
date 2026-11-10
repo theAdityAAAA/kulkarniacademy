@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ArrowLeft, KeyRound, LogIn, LogOut, MessageCircle, X } from 'lucide-react';
 import { configured, supabase } from './supabase';
 import { Notice, Spinner, useAction } from './shared';
-import Teacher from './Teacher';
-import Student from './Student';
+const Teacher = lazy(() => import('./Teacher'));
+const Student = lazy(() => import('./Student'));
 import './portal.css';
 import './tests.css';
 
@@ -113,7 +113,7 @@ function App() {
   if (!profile) {
     return <main className="login-page"><div className="login-card"><Brand/><h1>Almost there.</h1><p className="muted">Your login works, but your student account hasn’t been set up yet. Please message your teacher.</p><button className="btn btn-ghost btn-wide" onClick={() => supabase.auth.signOut()}><LogOut size={16}/>Sign out</button></div></main>;
   }
-  return <Shell profile={profile}>{profile.role === 'teacher' ? <Teacher profile={profile}/> : <Student profile={profile}/>}</Shell>;
+  return <Shell profile={profile}><Suspense fallback={<Spinner/>}>{profile.role === 'teacher' ? <Teacher profile={profile}/> : <Student profile={profile}/>}</Suspense></Shell>;
 }
 
 function NotConfigured() {

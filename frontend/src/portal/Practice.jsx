@@ -18,6 +18,7 @@ function PracticeSession({ items, onClose }) {
   const [answer, setAnswer] = useState(null);
   const [checked, setChecked] = useState(null); // true | false | null
   const [score, setScore] = useState({ right: 0, done: 0 });
+  const [saveFailed, setSaveFailed] = useState(false);
   const item = items[index];
 
   const check = async () => {
@@ -25,10 +26,13 @@ function PracticeSession({ items, onClose }) {
     const right = isRight(item, answer);
     setChecked(right);
     setScore((s) => ({ right: s.right + (right ? 1 : 0), done: s.done + 1 }));
-    const { data: { session } } = await supabase.auth.getSession();
-    await supabase.from('practice_attempts').insert({ student_id: session.user.id, question_id: item.question_id, correct: right });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { error } = await supabase.from('practice_attempts').insert({ student_id: session.user.id, question_id: item.question_id, correct: right });
+      setSaveFailed(Boolean(error));
+    } catch { setSaveFailed(true); }
   };
-  const next = () => { setIndex((i) => i + 1); setAnswer(null); setChecked(null); };
+  const next = () => { setIndex((i) => i + 1); setAnswer(null); setChecked(null); setSaveFailed(false); };
 
   if (!item) return <div className="practice-card practice-done">
     <Sparkles size={30}/>
@@ -51,7 +55,7 @@ function PracticeSession({ items, onClose }) {
         })}</div>
       : <label className="q-number">Your answer<input inputMode="decimal" value={answer ?? ''} disabled={checked !== null} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') check(); }} placeholder="Type a number"/></label>}
     {checked !== null && <div className={`practice-feedback ${checked ? 'right' : 'wrong'}`}>
-      <strong>{checked ? <><CheckCircle2 size={18}/> Correct! This one is out of your notebook.</> : <><XCircle size={18}/> Not quite. The answer is {item.kind === 'mcq' ? `“${item.options[item.correct_option]}”` : item.correct_number}.</>}</strong>
+      <strong>{checked ? <><CheckCircle2 size={18}/> Correct!{saveFailed ? ' (Couldn’t save this, so it will come back next time.)' : ' This one is out of your notebook.'}</> : <><XCircle size={18}/> Not quite. The answer is {item.kind === 'mcq' ? `“${item.options[item.correct_option]}”` : item.correct_number}.</>}</strong>
       {item.explanation && <p className="pre">{item.explanation}</p>}
     </div>}
     <div className="q-actions">

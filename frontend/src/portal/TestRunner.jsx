@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ArrowRight, Camera, CheckCircle2, Clock, Maximize, ShieldCheck, Trophy, X } from 'lucide-react';
-import { checkFile, supabase, uploadFile } from './supabase';
+import { checkFile, friendlyError, supabase, uploadFile } from './supabase';
 import { Notice } from './shared';
 import { dateTimeLabel } from './time';
 
@@ -13,7 +13,7 @@ const leaveFullscreen = () => { if (document.fullscreenElement) document.exitFul
 
 async function rpc(name, args) {
   const { data, error } = await supabase.rpc(name, args);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error.message));
   return data;
 }
 
@@ -59,6 +59,7 @@ export default function TestRunner({ test, onClose }) {
   const lastExit = useRef(0);
   const pickingUntil = useRef(0); // choosing a photo leaves the page on phones: that is not cheating
   const submitting = useRef(false);
+  const retryAt = useRef(0); // after a failed automatic submit, wait before trying again
   const answerRef = useRef({ choice: null, number: '', text: '', photos: [] });
   answerRef.current = { choice, number: numberAnswer, text: writtenText, photos };
 
@@ -93,7 +94,7 @@ export default function TestRunner({ test, onClose }) {
         const paths = [];
         for (const file of files) paths.push(await uploadFile(`${session.user.id}/submissions/tests/${view.attempt_id}`, file));
         apply(await rpc('test_answer', { p_test: test.id, p_question: question.id, p_text: text, p_files: paths }));
-      } catch (err) { setError(err.message); submitting.current = false; } finally { setBusy(false); }
+      } catch (err) { setError(err.message); submitting.current = false; retryAt.current = Date.now() + 4000; } finally { setBusy(false); }
       return;
     }
     let parsed = null;
@@ -105,13 +106,13 @@ export default function TestRunner({ test, onClose }) {
     submitting.current = true; setBusy(true); setError('');
     try {
       apply(await rpc('test_answer', { p_test: test.id, p_question: question.id, p_option: question.kind === 'mcq' ? c : null, p_number: parsed }));
-    } catch (err) { setError(err.message); submitting.current = false; } finally { setBusy(false); }
+    } catch (err) { setError(err.message); submitting.current = false; retryAt.current = Date.now() + 4000; } finally { setBusy(false); }
   }, [question, test.id, apply, view?.attempt_id]);
 
   // Time's up: send whatever is selected (or nothing).
   useEffect(() => {
     if (!running) return undefined;
-    const id = setInterval(() => { if (Date.now() >= deadline) submit(true); }, 300);
+    const id = setInterval(() => { if (Date.now() >= deadline && Date.now() >= retryAt.current) submit(true); }, 300);
     return () => clearInterval(id);
   }, [running, deadline, submit]);
 

@@ -103,7 +103,8 @@ export default function Student({ profile }) {
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     if (runningTest) return undefined; // don't reload underneath a running test
-    const onFocus = () => load();
+    let last = Date.now();
+    const onFocus = () => { if (Date.now() - last > 60000 && !document.activeElement?.closest('form')) { last = Date.now(); load(); } };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
   }, [load, runningTest]);
