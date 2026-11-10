@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Check, ChevronDown, ClipboardList, Copy, FilePlus2, Lock, Pencil, PenLine, RotateCcw, Send, Trash2, Upload, X } from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, ClipboardList, Copy, FilePlus2, Lightbulb, Lock, Pencil, PenLine, RotateCcw, Send, Shuffle, Trash2, Upload, X } from 'lucide-react';
 import { firstOf, must, supabase } from './supabase';
-import { Empty, Notice, TEST_SUBJECTS, useAction } from './shared';
+import { Empty, FileLink, Notice, TEST_SUBJECTS, useAction } from './shared';
 import { dateTimeLabel } from './time';
 import { QuestionForm, QuestionRow } from './PaperQuestions';
 import ImportQuestions from './ImportQuestions';
@@ -43,29 +43,110 @@ function NewPaper({ students, onCreated }) {
 }
 
 // ─── Results ───────────────────────────────────────────────────────────────
-function AttemptDetail({ attempt }) {
+function MarkWritten({ row, onMarked }) {
+  const max = row.questions.marks;
+  const [awarded, setAwarded] = useState(row.awarded ?? '');
+  const [comment, setComment] = useState(row.teacher_comment ?? '');
+  const { busy, error, run } = useAction();
+  const save = (event) => {
+    event.preventDefault();
+    run(async () => {
+      const { error: rpcError } = await supabase.rpc('mark_written', { p_answer: row.id, p_awarded: Number(awarded), p_comment: comment });
+      if (rpcError) throw new Error(rpcError.message);
+      await onMarked();
+    });
+  };
+  return <form className="mark-written" onSubmit={save}>
+    <label>Marks<span className="marks-input"><input type="number" min="0" max={max} step="0.5" value={awarded} onChange={(e) => setAwarded(e.target.value)} required/> / {max}</span></label>
+    <label>Comment for the student <span className="optional">(optional)</span><input value={comment} onChange={(e) => setComment(e.target.value)} maxLength={2000} placeholder="e.g. Good method, check your units."/></label>
+    <button className="btn btn-primary btn-small" disabled={busy}>{busy ? 'Saving…' : row.marked_at ? 'Update mark' : 'Save mark'}</button>
+    {error && <span className="error-text">{error}</span>}
+  </form>;
+}
+
+function AttemptDetail({ attempt, reload }) {
   const [rows, setRows] = useState(null);
   const { error, run } = useAction();
-  React.useEffect(() => {
-    run(async () => setRows(must(await supabase.from('attempt_answers').select('*, questions(prompt, kind, options, correct_option, correct_number)').eq('attempt_id', attempt.id).order('position'))));
-  }, [attempt.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const load = () => run(async () => setRows(must(await supabase.from('attempt_answers').select('*, questions(prompt, kind, options, correct_option, correct_number, marks, explanation)').eq('attempt_id', attempt.id).order('position'))));
+  React.useEffect(() => { load(); }, [attempt.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (error) return <Notice>{error}</Notice>;
   if (!rows) return <p className="muted small">Loading answers…</p>;
-  return <table className="answers-table">
-    <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Time</th></tr></thead>
-    <tbody>{rows.map((r) => {
-      const q = r.questions;
-      const given = q.kind === 'mcq' ? (r.given_option != null ? q.options[r.given_option] : null) : r.given_number;
-      const correct = q.kind === 'mcq' ? q.options[q.correct_option] : q.correct_number;
-      const secs = r.answered_at ? Math.round((new Date(r.answered_at) - new Date(r.asked_at)) / 1000) : null;
-      return <tr key={r.id} className={r.is_correct ? 'right' : r.is_correct === false ? 'wrong' : ''}>
-        <td>{r.position}</td>
-        <td className="answers-prompt">{q.prompt}</td>
-        <td>{r.is_correct == null ? <span className="muted">In progress</span> : r.is_correct ? <><Check size={14}/> {String(given)}</> : <><X size={14}/> {given == null ? (r.timed_out ? 'Time ran out' : '—') : String(given)}<br/><span className="muted small">Correct: {String(correct)}</span></>}</td>
-        <td>{secs != null ? `${secs}s / ${r.time_limit_seconds}s` : r.timed_out ? `— / ${r.time_limit_seconds}s` : ''}</td>
-      </tr>;
-    })}</tbody>
-  </table>;
+  const written = rows.filter((r) => r.questions.kind === 'written' && r.answered_at && !r.timed_out);
+  return <div className="stack">
+    {written.length > 0 && <div className="written-answers">
+      <h4>Written answers to mark</h4>
+      {written.map((r) => <div key={r.id} className={`written-answer ${r.marked_at ? 'marked' : 'pending'}`}>
+        <p className="small"><strong>Q{r.position}.</strong> {r.questions.prompt}</p>
+        {r.given_text && <p className="pre student-text">{r.given_text}</p>}
+        {r.given_files?.length > 0 && <div className="file-list">{r.given_files.map((f) => <FileLink key={f} path={f}/>)}</div>}
+        {r.questions.explanation && <details className="model-answer"><summary>Model answer / marking points</summary><p className="pre small">{r.questions.explanation}</p></details>}
+        <MarkWritten row={r} onMarked={async () => { load(); await reload(); }}/>
+      </div>)}
+    </div>}
+    <table className="answers-table">
+      <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Time</th></tr></thead>
+      <tbody>{rows.map((r) => {
+        const q = r.questions;
+        const given = q.kind === 'mcq' ? (r.given_option != null ? q.options[r.given_option] : null) : r.given_number;
+        const correct = q.kind === 'mcq' ? q.options[q.correct_option] : q.correct_number;
+        const secs = r.answered_at ? Math.round((new Date(r.answered_at) - new Date(r.asked_at)) / 1000) : null;
+        const cell = q.kind === 'written'
+          ? (r.timed_out ? <><X size={14}/> No answer</> : r.marked_at ? <>{Number(r.awarded)} / {q.marks} marks</> : <span className="badge badge-warn">To mark</span>)
+          : r.is_correct == null ? <span className="muted">In progress</span>
+          : r.is_correct ? <><Check size={14}/> {String(given)}</>
+          : <><X size={14}/> {given == null ? (r.timed_out ? 'Time ran out' : '—') : String(given)}<br/><span className="muted small">Correct: {String(correct)}</span></>;
+        return <tr key={r.id} className={q.kind === 'written' ? '' : r.is_correct ? 'right' : r.is_correct === false ? 'wrong' : ''}>
+          <td>{r.position}</td>
+          <td className="answers-prompt">{q.prompt}</td>
+          <td>{cell}</td>
+          <td>{secs != null ? `${secs}s / ${r.time_limit_seconds}s` : r.timed_out ? `— / ${r.time_limit_seconds}s` : ''}</td>
+        </tr>;
+      })}</tbody>
+    </table>
+  </div>;
+}
+
+// ─── What to reteach ───────────────────────────────────────────────────────
+function ReteachReport({ questions, tests }) {
+  const [rows, setRows] = useState(null);
+  const { error, run } = useAction();
+  const attemptIds = tests.map((t) => firstOf(t.test_attempts)).filter((a) => a?.finished_at).map((a) => a.id);
+  const key = attemptIds.join(',');
+  React.useEffect(() => {
+    if (!attemptIds.length) { setRows([]); return; }
+    run(async () => setRows(must(await supabase.from('attempt_answers').select('question_id, is_correct, given_option, timed_out, awarded, answered_at').in('attempt_id', attemptIds))));
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (error) return <Notice>{error}</Notice>;
+  if (!rows) return <p className="muted small">Working it out…</p>;
+  if (!attemptIds.length) return <p className="muted small">Appears once a student finishes this test.</p>;
+  const stats = questions.map((q, i) => {
+    const answers = rows.filter((r) => r.question_id === q.id && (r.is_correct !== null || r.timed_out));
+    const wrong = answers.filter((r) => r.is_correct === false);
+    let commonWrong = null;
+    if (q.kind === 'mcq') {
+      const counts = {};
+      wrong.forEach((r) => { if (r.given_option != null) counts[r.given_option] = (counts[r.given_option] ?? 0) + 1; });
+      const top = Object.entries(counts).sort((x, y) => y[1] - x[1])[0];
+      if (top && top[1] > 1) commonWrong = `${top[1]} chose “${q.options[top[0]]}”`;
+    }
+    const timedOut = wrong.filter((r) => r.timed_out).length;
+    return { q, n: i + 1, total: answers.length, wrong: wrong.length, rate: answers.length ? wrong.length / answers.length : 0, commonWrong, timedOut };
+  }).filter((x) => x.total > 0);
+  const tough = stats.filter((x) => x.rate >= 0.5).sort((x, y) => y.rate - x.rate || y.wrong - x.wrong);
+  const shown = tough.length ? tough : [...stats].sort((x, y) => y.rate - x.rate).slice(0, 5).filter((x) => x.wrong > 0);
+  const finished = attemptIds.length;
+  const intro = tough.length
+    ? `${tough.length} question${tough.length > 1 ? 's were' : ' was'} got wrong by half or more of them. Start the next class here:`
+    : shown.length ? 'No question was missed by half the students. The ones missed most:' : 'Everyone got every question right. 🎉';
+  return <div className="reteach">
+    <p className="hint">{finished} student{finished > 1 ? 's' : ''} finished. {intro}</p>
+    {shown.length > 0 && <ol className="reteach-list">{shown.map((x) => <li key={x.q.id}>
+      <span className="reteach-rate" style={{ '--rate': `${Math.round(x.rate * 100)}%` }}><strong>{x.wrong}/{x.total}</strong> wrong</span>
+      <span><strong>Q{x.n}.</strong> {x.q.prompt.length > 140 ? `${x.q.prompt.slice(0, 140)}…` : x.q.prompt}
+        {(x.commonWrong || x.timedOut > 0) && <span className="muted small"> · {[x.commonWrong, x.timedOut ? `${x.timedOut} ran out of time` : null].filter(Boolean).join(' · ')}</span>}
+        {x.q.topic && <span className="badge badge-muted">{x.q.topic}</span>}</span>
+    </li>)}</ol>}
+  </div>;
 }
 
 function ResultItem({ test, student, reload, now }) {
@@ -73,7 +154,8 @@ function ResultItem({ test, student, reload, now }) {
   const { busy, error, run } = useAction();
   const a = firstOf(test.test_attempts);
   const opens = new Date(test.opens_at).getTime(), closes = new Date(test.closes_at).getTime();
-  const status = a?.finished_at ? <span className="badge badge-success">{pct(a)}%</span>
+  const status = a?.finished_at && a.pending_marks > 0 ? <span className="badge badge-warn">{a.pending_marks} to mark</span>
+    : a?.finished_at ? <span className="badge badge-success">{pct(a)}%</span>
     : a ? <span className="badge badge-accent">In progress</span>
     : now < opens ? <span className="badge badge-muted">Opens {dateTimeLabel(test.opens_at)}</span>
     : now > closes ? <span className="badge badge-warn">Missed</span>
@@ -90,10 +172,10 @@ function ResultItem({ test, student, reload, now }) {
     {open && <div className="hw-detail">
       {a?.finished_at && <div className="result-line">
         <strong>{pct(a)}%</strong>
-        <span>{a.correct_count} of {a.asked_count} correct</span>
+        <span>{Number(a.points)} of {Number(a.max_points)} marks{a.pending_marks > 0 ? ` so far (${a.pending_marks} written answer${a.pending_marks > 1 ? 's' : ''} to mark)` : ''}</span>
         {a.finish_reason === 'exits' && <span className="badge badge-warn">Auto-submitted after {a.exits} exits</span>}
       </div>}
-      {a && <AttemptDetail attempt={a}/>}
+      {a && <AttemptDetail attempt={a} reload={reload}/>}
       <Notice>{error}</Notice>
       <div className="row">
         {a && <button className="link-btn" onClick={retake} disabled={busy}><RotateCcw size={15}/>Allow a retake</button>}
@@ -146,6 +228,7 @@ function AssignForm({ paper, count, students, assigned, reload }) {
 function PaperView({ paper, questions, tests, students, reload, now, onBack, onOpen }) {
   const byId = useMemo(() => Object.fromEntries(students.map((s) => [s.id, s])), [students]);
   const [adding, setAdding] = useState('one'); // 'one' | 'file'
+  const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState(null);
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(paper.title);
@@ -164,12 +247,29 @@ function PaperView({ paper, questions, tests, students, reload, now, onBack, onO
   const removeQuestion = (q, i) => { if (confirm(`Remove question ${i + 1}?`)) run(async () => { must(await supabase.from('questions').delete().eq('id', q.id)); await reload(); }); };
   const rename = (event) => { event.preventDefault(); run(async () => { must(await supabase.from('papers').update({ title: title.trim() }).eq('id', paper.id)); must(await supabase.from('tests').update({ title: title.trim() }).eq('paper_id', paper.id)); setRenaming(false); await reload(); }); };
   const duplicate = () => run(async () => {
-    const copy = must(await supabase.from('papers').insert({ title: `${paper.title} (copy)`.slice(0, 150), subject: paper.subject, grade: paper.grade }).select().single());
+    const copy = must(await supabase.from('papers').insert({ title: `${paper.title} (copy)`.slice(0, 150), subject: paper.subject, grade: paper.grade, shuffle_questions: paper.shuffle_questions ?? false }).select().single());
     if (questions.length) must(await supabase.from('questions').insert(questions.map(({ id, created_at, paper_id, ...q }) => ({ ...q, paper_id: copy.id }))));
     await reload();
     onOpen(copy.id);
   });
   const removePaper = () => { if (confirm(`Delete “${paper.title}”? Its ${questions.length} questions and all ${tests.length} student results will be deleted. This can’t be undone.`)) run(async () => { must(await supabase.from('papers').delete().eq('id', paper.id)); await reload(); onBack(); }); };
+
+  // Once a test has questions, giving it to students is the main next step, so it goes first.
+  const giveAndResults = <>
+    <section className="card give-card" id="give-test">
+      <h2 className="card-title"><Send size={20}/>Give this test to students</h2>
+      <AssignForm paper={paper} count={questions.length} students={students} assigned={new Set(tests.map((t) => t.student_id))} reload={reload}/>
+    </section>
+    <section className="card">
+      <h2 className="card-title"><Lightbulb size={20}/>What to reteach</h2>
+      <ReteachReport questions={questions} tests={tests}/>
+    </section>
+    <section className="card">
+      <h2 className="card-title"><Check size={20}/>Results</h2>
+      {tests.length ? <ul className="hw-list">{tests.map((t) => <ResultItem key={t.id} test={t} student={byId[t.student_id]} reload={reload} now={now}/>)}</ul>
+        : <p className="muted small">Not given to anyone yet.</p>}
+    </section>
+  </>;
 
   return <div className="stack-lg">
     <div className="paper-head">
@@ -178,10 +278,13 @@ function PaperView({ paper, questions, tests, students, reload, now, onBack, onO
         : <h2 className="paper-title">{paper.title}<button className="icon-btn" onClick={() => setRenaming(true)} aria-label="Rename test" title="Rename"><PenLine size={16}/></button></h2>}
       <p className="muted">{paper.subject}{paper.grade ? ` · ${paper.grade}` : ''} · {questions.length} question{questions.length === 1 ? '' : 's'} · given to {givenTo} student{givenTo === 1 ? "" : "s"}</p>
       <div className="row">
+        {questions.length > 0 && <button className="btn btn-primary btn-small" onClick={() => { const el = document.getElementById('give-test'); el?.scrollIntoView({ behavior: 'smooth', block: 'start' }); el?.querySelector('input')?.focus({ preventScroll: true }); }}><Send size={15}/>Give to students</button>}
+        <label className="inline-check shuffle-toggle" title="Each student gets the questions in a different random order"><input type="checkbox" checked={paper.shuffle_questions ?? false} disabled={busy} onChange={(e) => run(async () => { must(await supabase.from('papers').update({ shuffle_questions: e.target.checked }).eq('id', paper.id)); await reload(); })}/><Shuffle size={15}/>Shuffle order for each student</label>
         <button className="btn btn-ghost btn-small" onClick={duplicate} disabled={busy}><Copy size={15}/>Duplicate</button>
         <button className="btn btn-ghost btn-small danger-text" onClick={removePaper} disabled={busy}><Trash2 size={15}/>Delete test</button>
       </div>
       <Notice>{error}</Notice>
+      <Notice kind="success">{notice}</Notice>
     </div>
 
     <div className="split">
@@ -193,25 +296,18 @@ function PaperView({ paper, questions, tests, students, reload, now, onBack, onO
           : <Empty icon={ClipboardList} title="No questions yet">Add them on the right: type them, or upload a spreadsheet or PDF.</Empty>}
       </section>
       <div className="stack">
-        {!locked && <section className="card">
+        {questions.length > 0 && giveAndResults}
+        {!locked && questions.length > 0 && !showAdd && !editing && <button className="btn btn-ghost" onClick={() => setShowAdd(true)}><Pencil size={16}/>Add more questions</button>}
+        {!locked && (showAdd || editing || questions.length === 0) && <section className="card">
           {!editing && <div className="segmented-tabs" role="tablist" aria-label="How to add questions">
             <button role="tab" aria-selected={adding === 'one'} className={adding === 'one' ? 'active' : ''} onClick={() => setAdding('one')}><Pencil size={16}/>Type a question</button>
             <button role="tab" aria-selected={adding === 'file'} className={adding === 'file' ? 'active' : ''} onClick={() => setAdding('file')}><Upload size={16}/>Upload a file</button>
           </div>}
-          <Notice kind="success">{notice}</Notice>
           {editing || adding === 'one'
             ? <QuestionForm key={editing?.id ?? `new-${nextPosition}`} paper={paper} editing={editing} nextPosition={nextPosition} reload={reload} onDone={() => setEditing(null)}/>
-            : <ImportQuestions paper={paper} nextPosition={nextPosition} reload={reload} onDone={(msg) => { setNotice(msg); if (msg) setAdding('one'); }}/>}
+            : <ImportQuestions paper={paper} nextPosition={nextPosition} reload={reload} onDone={(msg) => { setNotice(msg); if (msg) { setAdding('one'); setShowAdd(false); window.scrollTo({ top: 0, behavior: 'smooth' }); } }}/>}
         </section>}
-        <section className="card">
-          <h2 className="card-title"><Send size={20}/>Give this test to students</h2>
-          <AssignForm paper={paper} count={questions.length} students={students} assigned={new Set(tests.map((t) => t.student_id))} reload={reload}/>
-        </section>
-        <section className="card">
-          <h2 className="card-title"><Check size={20}/>Results</h2>
-          {tests.length ? <ul className="hw-list">{tests.map((t) => <ResultItem key={t.id} test={t} student={byId[t.student_id]} reload={reload} now={now}/>)}</ul>
-            : <p className="muted small">Not given to anyone yet.</p>}
-        </section>
+        {questions.length === 0 && giveAndResults}
       </div>
     </div>
   </div>;

@@ -2,18 +2,18 @@ import React, { useRef, useState } from 'react';
 import { AlertTriangle, Download, FileSpreadsheet, FileText, ImagePlus, Loader2, Sparkles } from 'lucide-react';
 import { api, must, supabase } from './supabase';
 import { Notice, useAction } from './shared';
-import { timeLabel, uploadQuestionImage } from './PaperQuestions';
+import { TIME_LIMITS, timeLabel, uploadQuestionImage } from './PaperQuestions';
 
 // Adds many questions to ONE test paper, in the file's order, after a review step.
 
-const TIME_LIMITS = [20, 30, 45, 60, 90, 120, 180, 300];
 const LETTERS = 'ABCDEF';
 
 // ─── Spreadsheet (CSV) ─────────────────────────────────────────────────────
-const CSV_COLUMNS = ['question', 'type', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'option_f', 'correct', 'margin', 'time_seconds', 'topic', 'explanation'];
+const CSV_COLUMNS = ['question', 'type', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'option_f', 'correct', 'margin', 'marks', 'time_seconds', 'topic', 'explanation'];
 const CSV_EXAMPLE = [
-  ['Solve for x: 3x + 5 = 20', 'number', '', '', '', '', '', '', '5', '0', '60', 'Linear equations', 'Subtract 5, then divide by 3.'],
-  ['What is 3/4 + 1/8?', 'choice', '7/8', '4/12', '1/2', '5/8', '', '', 'A', '', '45', 'Fractions', '3/4 = 6/8, and 6/8 + 1/8 = 7/8.'],
+  ['Solve for x: 3x + 5 = 20', 'number', '', '', '', '', '', '', '5', '0', '', '60', 'Linear equations', 'Subtract 5, then divide by 3.'],
+  ['What is 3/4 + 1/8?', 'choice', '7/8', '4/12', '1/2', '5/8', '', '', 'A', '', '', '45', 'Fractions', '3/4 = 6/8, and 6/8 + 1/8 = 7/8.'],
+  ['A rectangle is 4 cm by 3 cm. Find its area. Show your working.', 'written', '', '', '', '', '', '', '', '', '3', '300', 'Area', '1 mark: area = length × width. 1 mark: 4 × 3. 1 mark: 12 cm².'],
 ];
 
 function downloadTemplate() {
@@ -48,12 +48,13 @@ function rowsFromCsv(text) {
   if (col('question') < 0) throw new Error('Couldn’t find a “question” column. Please start from the template.');
   return rows.slice(1).map((r, n) => {
     const get = (name) => (col(name) >= 0 ? String(r[col(name)] ?? '').trim() : '');
-    const kind = /^num/i.test(get('type')) ? 'number' : 'mcq';
+    const kind = /^num/i.test(get('type')) ? 'number' : /^(writ|work|long|open)/i.test(get('type')) ? 'written' : 'mcq';
+    const marks = Math.min(20, Math.max(1, Math.round(Number(get('marks')) || 1)));
     const options = ['a', 'b', 'c', 'd', 'e', 'f'].map((l) => get(`option_${l}`)).filter(Boolean);
     const correct = get('correct');
     const seconds = Number(get('time_seconds')) || 60;
     return {
-      prompt: get('question'), kind, options, topic: get('topic'),
+      prompt: get('question'), kind, marks, options: kind === 'mcq' ? options : [], topic: get('topic'),
       correct_option: kind === 'mcq' ? LETTERS.indexOf(correct.toUpperCase()) : 0,
       correct_number: kind === 'number' ? correct : '', tolerance: get('margin') || '0',
       time_limit_seconds: TIME_LIMITS.reduce((best, t) => (Math.abs(t - seconds) < Math.abs(best - seconds) ? t : best), 60),
@@ -69,7 +70,7 @@ function problems(q) {
   if (q.kind === 'mcq') {
     if (q.options.filter((o) => o.trim()).length < 2) list.push('Needs at least 2 options.');
     if (!(q.correct_option >= 0 && q.options[q.correct_option]?.trim())) list.push('Choose the correct option.');
-  } else {
+  } else if (q.kind === 'number') {
     if (q.correct_number === '' || Number.isNaN(Number(String(q.correct_number).replace(',', '.')))) list.push('Enter the correct number.');
     if (Number.isNaN(Number(String(q.tolerance).replace(',', '.')))) list.push('Margin must be a number.');
   }
@@ -77,11 +78,12 @@ function problems(q) {
 }
 
 function toRow(q, imagePath, paper, position) {
-  const base = { paper_id: paper.id, position, subject: paper.subject, grade: paper.grade, difficulty: 2, kind: q.kind, prompt: q.prompt.trim(), topic: q.topic?.trim() || null, time_limit_seconds: q.time_limit_seconds, explanation: q.explanation?.trim() || null, image_path: imagePath ?? null };
+  const base = { paper_id: paper.id, position, subject: paper.subject, grade: paper.grade, difficulty: 2, kind: q.kind, marks: q.kind === 'written' ? q.marks ?? 1 : 1, prompt: q.prompt.trim(), topic: q.topic?.trim() || null, time_limit_seconds: q.time_limit_seconds, explanation: q.explanation?.trim() || null, image_path: imagePath ?? null };
   if (q.kind === 'mcq') {
     const kept = q.options.map((o, i) => ({ o: o.trim(), i })).filter((x) => x.o);
     return { ...base, options: kept.map((x) => x.o), correct_option: kept.findIndex((x) => x.i === q.correct_option), correct_number: null, tolerance: 0 };
   }
+  if (q.kind === 'written') return { ...base, options: null, correct_option: null, correct_number: null, tolerance: 0 };
   return { ...base, options: null, correct_option: null, correct_number: Number(String(q.correct_number).replace(',', '.')), tolerance: Number(String(q.tolerance).replace(',', '.')) || 0 };
 }
 
@@ -94,6 +96,7 @@ function ReviewCard({ q, index, onChange }) {
       <label className="inline-check"><input type="checkbox" checked={q.include} onChange={(e) => set('include', e.target.checked)}/>Question {index + 1}</label>
       {q.page && <span className="muted small">page {q.page}</span>}
       {q.row && <span className="muted small">row {q.row}</span>}
+      <span className="badge badge-muted kind-badge">{q.kind === 'mcq' ? 'Choices' : q.kind === 'number' ? 'Number' : `Written · ${q.marks} mark${q.marks > 1 ? 's' : ''}`}</span>
     </div>
     {flags.length > 0 && <ul className="review-flags">{flags.map((f) => <li key={f}><AlertTriangle size={14}/>{f}</li>)}</ul>}
     {q.include && <div className="form review-fields">
@@ -108,11 +111,11 @@ function ReviewCard({ q, index, onChange }) {
           <input value={opt} onChange={(e) => set('options', q.options.map((o, j) => (j === i ? e.target.value : o)))} maxLength={300} aria-label={`Option ${LETTERS[i]}`}/>
         </div>)}
         {q.options.length < 6 && <button type="button" className="link-btn" onClick={() => set('options', [...q.options, ''])}>+ Add option</button>}
-      </fieldset> : <div className="grid-2">
+      </fieldset> : q.kind === 'number' ? <div className="grid-2">
         <label>Correct number<input inputMode="decimal" value={q.correct_number} onChange={(e) => set('correct_number', e.target.value)}/></label>
         <label>Margin (±)<input inputMode="decimal" value={q.tolerance} onChange={(e) => set('tolerance', e.target.value)}/></label>
-      </div>}
-      <label>Explanation <span className="optional">(optional)</span><textarea rows={1} value={q.explanation} onChange={(e) => set('explanation', e.target.value)} maxLength={2000}/></label>
+      </div> : <label>Marks<select value={q.marks ?? 1} onChange={(e) => set('marks', Number(e.target.value))}>{Array.from({ length: 20 }, (_, i) => i + 1).map((m) => <option key={m} value={m}>{m} mark{m > 1 ? 's' : ''}</option>)}</select></label>}
+      <label>{q.kind === 'written' ? 'Model answer / marking points' : 'Explanation'} <span className="optional">(optional)</span><textarea rows={1} value={q.explanation} onChange={(e) => set('explanation', e.target.value)} maxLength={2000}/></label>
       <label className="file-inline"><ImagePlus size={16}/>{q.image ? `Diagram: ${q.image.name}` : 'Attach a diagram (optional)'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => set('image', e.target.files[0] ?? null)}/></label>
       {issues.length > 0 && <p className="error-text">{issues.join(' ')}</p>}
     </div>}
@@ -194,7 +197,7 @@ export default function ImportQuestions({ paper, nextPosition, reload, onDone })
   };
 
   if (items) return <div>
-    {skipped.length > 0 && <details className="skipped"><summary>{skipped.length} question{skipped.length > 1 ? 's' : ''} skipped (need a written answer or similar)</summary>
+    {skipped.length > 0 && <details className="skipped"><summary>{skipped.length} question{skipped.length > 1 ? 's' : ''} skipped (couldn’t be answered on their own)</summary>
       <ul>{skipped.map((s, i) => <li key={i}><span className="muted small">page {s.page}:</span> {s.text} <em className="muted small">({s.reason})</em></li>)}</ul></details>}
     <Review items={items} setItems={setItems} paper={paper} nextPosition={nextPosition} reload={reload} summary={summary} onFinished={(msg) => { setItems(null); onDone(msg); }}/>
   </div>;
@@ -208,10 +211,11 @@ export default function ImportQuestions({ paper, nextPosition, reload, onDone })
       <p className="hint">Fill in the template in Excel or Google Sheets (one question per row, in the order you want), save or download it as <strong>CSV</strong>, and upload it here.</p>
       <button type="button" className="btn btn-ghost" onClick={downloadTemplate}><Download size={16}/>Download the template</button>
       <ul className="hint csv-help">
-        <li><strong>type:</strong> choice or number</li>
-        <li><strong>correct:</strong> the letter (A–F) for choice questions, or the number for number questions</li>
+        <li><strong>type:</strong> choice, number, or written (student shows their working; you mark it)</li>
+        <li><strong>correct:</strong> the letter (A–F) for choice questions, or the number for number questions (leave empty for written)</li>
+        <li><strong>marks:</strong> for written questions, how many marks it's worth (1–20)</li>
         <li><strong>margin:</strong> allowed ± for number answers (0 = exact) · <strong>time_seconds:</strong> e.g. 60</li>
-        <li><strong>topic</strong> and <strong>explanation</strong> are optional</li>
+        <li><strong>topic</strong> and <strong>explanation</strong> are optional; for written questions put the model answer in explanation</li>
       </ul>
       <label>CSV file<input ref={csvInput} type="file" accept=".csv,text/csv"/></label>
       <Notice>{error}</Notice>

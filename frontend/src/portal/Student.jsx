@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { BookOpenCheck, CalendarDays, CheckCircle2, ClipboardList, LineChart, RefreshCw, ShieldCheck, Upload, Video } from 'lucide-react';
+import { BookOpenCheck, CalendarDays, CheckCircle2, ClipboardList, LineChart, RefreshCw, RotateCcw, ShieldCheck, Upload, Video } from 'lucide-react';
+import Practice from './Practice';
 import ProgressChart, { progressPoints } from './ProgressChart';
 import StudentTests from './StudentTests';
 import TestRunner from './TestRunner';
@@ -17,6 +18,7 @@ function NextClass({ cls, now }) {
       <h2>{cls.subject}{cls.topic ? `: ${cls.topic}` : ''}</h2>
       <p className="next-when">{dayLabel(cls.starts_at)} · {timeLabel(cls.starts_at)}<span> ({relativeLabel(cls.starts_at, now)})</span></p>
       <p className="muted small">{cls.duration_minutes} minutes on {platformName(cls.meeting_url)} · shown in your time ({placeName(localZone)})</p>
+      {cls.rescheduled_from && <p className="moved-note">Moved from {dateTimeLabel(cls.rescheduled_from)}</p>}
     </div>
     <JoinButton cls={cls} now={now}/>
   </section>;
@@ -128,10 +130,16 @@ export default function Student({ profile }) {
     {next ? <NextClass cls={next} now={now}/> : <section className="next-class"><div><span className="eyebrow">YOUR NEXT CLASS</span><h2>No class booked yet</h2><p className="muted">Your teacher will add your next class here.</p></div><Video size={34} className="muted"/></section>}
 
     <div className="split">
-      <section className="card">
-        <h2 className="card-title"><ShieldCheck size={20}/>Tests</h2>
-        <StudentTests tests={data.tests} now={now} onStart={setRunningTest}/>
-      </section>
+      <div className="stack">
+        <section className="card">
+          <h2 className="card-title"><ShieldCheck size={20}/>Tests</h2>
+          <StudentTests tests={data.tests} now={now} onStart={setRunningTest}/>
+        </section>
+        <section className="card">
+          <h2 className="card-title"><RotateCcw size={20}/>Mistake notebook</h2>
+          <Practice/>
+        </section>
+      </div>
       <section className="card">
         <h2 className="card-title"><LineChart size={20}/>My progress</h2>
         <ProgressChart points={progressPoints(data.homework, data.tests)} title="Your scores"/>
@@ -152,7 +160,7 @@ export default function Student({ profile }) {
         <p className="hint">Times shown in your time ({placeName(localZone)}).</p>
         {later.length ? <ul className="class-list">{later.map((c) => <li key={c.id} className={`class-row state-${classState(c, now)}`}>
           <div className="class-time"><strong>{dayLabel(c.starts_at)}</strong><span>{timeLabel(c.starts_at)}</span></div>
-          <div className="class-info"><strong>{c.subject}</strong>{c.topic && <span>{c.topic}</span>}<span className="muted small">{c.duration_minutes} min · {platformName(c.meeting_url)}</span></div>
+          <div className="class-info"><strong>{c.subject}</strong>{c.topic && <span>{c.topic}</span>}{c.rescheduled_from && <span className="badge badge-accent moved">Moved from {dateTimeLabel(c.rescheduled_from)}</span>}<span className="muted small">{c.duration_minutes} min · {platformName(c.meeting_url)}</span></div>
           <div className="class-actions"><JoinButton cls={c} now={now}/></div>
         </li>)}</ul> : <Empty icon={CalendarDays} title="Nothing else booked">More classes will show up here.</Empty>}
       </section>

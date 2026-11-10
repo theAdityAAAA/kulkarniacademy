@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ArrowRight, CheckCircle2, Clock, Maximize, ShieldCheck, Trophy, X } from 'lucide-react';
-import { supabase } from './supabase';
+import { AlertTriangle, ArrowRight, Camera, CheckCircle2, Clock, Maximize, ShieldCheck, Trophy, X } from 'lucide-react';
+import { checkFile, supabase, uploadFile } from './supabase';
 import { Notice } from './shared';
 import { dateTimeLabel } from './time';
 
@@ -35,7 +35,10 @@ function Finished({ view, onClose }) {
     <h1>{view.reason === 'no_questions' ? 'No questions available' : 'Test finished'}</h1>
     {view.reason === 'exits' && <Notice>The test was submitted because you left it {view.exits} times.</Notice>}
     {view.reason === 'no_questions' ? <p className="muted">Your teacher hasn’t added questions for this test yet. Please let them know.</p> : <>
-      <div className="runner-score"><strong>{pct}%</strong><span>{view.correct} of {view.asked} correct</span></div>
+      {view.pending_marks > 0
+        ? <><div className="runner-score"><strong>{pct}%</strong><span>so far: {view.pending_marks} written answer{view.pending_marks > 1 ? 's' : ''} still to be marked</span></div>
+          <p className="muted">Your teacher will mark your written answers, so your final score can only go up from here.</p></>
+        : <div className="runner-score"><strong>{pct}%</strong><span>{view.points} of {view.max_points} marks</span></div>}
       <p className="muted small">You can see the answers and explanations after {dateTimeLabel(view.review_at)}.</p>
     </>}
     <button className="btn btn-primary" onClick={onClose}>Back to the portal</button>
@@ -50,10 +53,14 @@ export default function TestRunner({ test, onClose }) {
   const [numberAnswer, setNumberAnswer] = useState('');
   const [deadline, setDeadline] = useState(0);
   const [warning, setWarning] = useState(null);
+  const [writtenText, setWrittenText] = useState('');
+  const [photos, setPhotos] = useState([]);
+  const [backToFullscreen, setBackToFullscreen] = useState(false);
   const lastExit = useRef(0);
+  const pickingUntil = useRef(0); // choosing a photo leaves the page on phones: that is not cheating
   const submitting = useRef(false);
-  const answerRef = useRef({ choice: null, number: '' });
-  answerRef.current = { choice, number: numberAnswer };
+  const answerRef = useRef({ choice: null, number: '', text: '', photos: [] });
+  answerRef.current = { choice, number: numberAnswer, text: writtenText, photos };
 
   const running = view?.status === 'in_progress';
   const question = view?.question;
@@ -62,6 +69,8 @@ export default function TestRunner({ test, onClose }) {
     setView(next);
     setChoice(null);
     setNumberAnswer('');
+    setWrittenText('');
+    setPhotos([]);
     submitting.current = false;
     if (next?.status === 'in_progress') setDeadline(Date.now() + next.question.seconds_left * 1000);
     if (next?.status === 'finished') leaveFullscreen();
@@ -75,7 +84,18 @@ export default function TestRunner({ test, onClose }) {
 
   const submit = useCallback(async (timedOut = false) => {
     if (submitting.current || !question) return;
-    const { choice: c, number: n } = answerRef.current;
+    const { choice: c, number: n, text, photos: files } = answerRef.current;
+    if (question.kind === 'written') {
+      if (!timedOut && !text.trim() && !files.length) { setError('Type your answer or add a photo of your working.'); return; }
+      submitting.current = true; setBusy(true); setError('');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const paths = [];
+        for (const file of files) paths.push(await uploadFile(`${session.user.id}/submissions/tests/${view.attempt_id}`, file));
+        apply(await rpc('test_answer', { p_test: test.id, p_question: question.id, p_text: text, p_files: paths }));
+      } catch (err) { setError(err.message); submitting.current = false; } finally { setBusy(false); }
+      return;
+    }
     let parsed = null;
     if (question.kind === 'number' && n.trim() !== '') {
       parsed = Number(n.trim().replace(',', '.'));
@@ -86,7 +106,7 @@ export default function TestRunner({ test, onClose }) {
     try {
       apply(await rpc('test_answer', { p_test: test.id, p_question: question.id, p_option: question.kind === 'mcq' ? c : null, p_number: parsed }));
     } catch (err) { setError(err.message); submitting.current = false; } finally { setBusy(false); }
-  }, [question, test.id, apply]);
+  }, [question, test.id, apply, view?.attempt_id]);
 
   // Time's up: send whatever is selected (or nothing).
   useEffect(() => {
@@ -99,6 +119,7 @@ export default function TestRunner({ test, onClose }) {
   useEffect(() => {
     if (!running) return undefined;
     const record = async () => {
+      if (Date.now() < pickingUntil.current) { if (canFullscreen() && !document.fullscreenElement) setBackToFullscreen(true); return; }
       if (Date.now() - lastExit.current < 2000) return;
       lastExit.current = Date.now();
       try {
@@ -131,6 +152,7 @@ export default function TestRunner({ test, onClose }) {
         <li><strong>Every question has its own timer.</strong> When it runs out, your selected answer is sent automatically.</li>
         <li><strong>No going back</strong> to earlier questions.</li>
         <li><strong>Stay on this screen.</strong> Leaving full screen or switching apps is recorded. After {test.max_exits} times, the test submits itself.</li>
+        <li><strong>Written questions:</strong> type your answer and/or take a photo of your working. Adding a photo doesn’t count as leaving.</li>
         <li><strong>One attempt only.</strong> Work on your own, with paper and pencil ready.</li>
       </ul>
       <Notice>{error}</Notice>
@@ -145,7 +167,23 @@ export default function TestRunner({ test, onClose }) {
       <progress className="q-progress" value={view.position - 1} max={view.total}/>
       <p className="q-prompt">{question.prompt}</p>
       {question.image_path && <img className="q-image" src={questionImageUrl(question.image_path)} alt="Diagram for this question" draggable="false"/>}
-      {question.kind === 'mcq'
+      {question.kind === 'written' && <div className="q-written">
+        <span className="badge badge-accent">{question.marks} mark{question.marks > 1 ? 's' : ''} · your teacher marks this</span>
+        <label>Your answer <span className="optional">(type it, or add a photo of your working, or both)</span>
+          <textarea rows={5} value={writtenText} onChange={(e) => setWrittenText(e.target.value)} maxLength={5000} placeholder="Write your answer and working here…"/></label>
+        <label className="file-pick" onClick={() => { pickingUntil.current = Date.now() + 180000; }}>
+          <Camera size={18}/>{photos.length ? 'Add another photo' : 'Take or add a photo of your working'}
+          <input type="file" accept="image/*,application/pdf" multiple onChange={(e) => {
+            const picked = Array.from(e.target.files ?? []);
+            const bad = picked.map(checkFile).find(Boolean);
+            if (bad) setError(bad); else setPhotos((list) => [...list, ...picked].slice(0, 6));
+            e.target.value = '';
+            pickingUntil.current = Date.now() + 3000;
+          }}/>
+        </label>
+        {photos.length > 0 && <ul className="photo-list">{photos.map((f, i) => <li key={i}>{f.name}<button type="button" className="icon-btn" onClick={() => setPhotos((list) => list.filter((_, j) => j !== i))} aria-label={`Remove ${f.name}`}><X size={14}/></button></li>)}</ul>}
+      </div>}
+      {question.kind === 'written' ? null : question.kind === 'mcq'
         ? <div className="q-options" role="radiogroup" aria-label="Answers">{question.options.map((opt, i) => <button key={i} role="radio" aria-checked={choice === i} className={choice === i ? 'q-option selected' : 'q-option'} onClick={() => setChoice(i)} disabled={busy}><span className="q-letter">{String.fromCharCode(65 + i)}</span>{opt}</button>)}</div>
         : <label className="q-number">Your answer<input inputMode="decimal" autoComplete="off" value={numberAnswer} onChange={(e) => setNumberAnswer(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} placeholder="Type a number" autoFocus/></label>}
       <Notice>{error}</Notice>
@@ -156,6 +194,10 @@ export default function TestRunner({ test, onClose }) {
     </div>}
 
     {view?.status === 'finished' && <Finished view={view} onClose={close}/>}
+
+    {backToFullscreen && running && !warning && <div className="runner-return">
+      <button className="btn btn-primary" onClick={() => { setBackToFullscreen(false); enterFullscreen(); }}><Maximize size={17}/>Back to full screen</button>
+    </div>}
 
     {warning && running && <div className="runner-warning" role="alertdialog" aria-labelledby="exit-warning-title">
       <div className="runner-card runner-center">

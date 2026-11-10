@@ -61,6 +61,7 @@ export default function Teacher({ profile }) {
   const weekEnd = now + 7 * 86400000;
   const thisWeek = data.classes.filter((c) => c.status !== 'cancelled' && new Date(c.starts_at).getTime() >= now && new Date(c.starts_at).getTime() < weekEnd).length;
   const toMark = data.homework.filter((h) => h.submission && !h.marked_at).length;
+  const testsToMark = data.tests.filter((t) => firstOf(t.test_attempts)?.pending_marks > 0).length;
   const nextStudent = nextClass && studentsById[nextClass.student_id];
 
   return <div className="stack-lg">
@@ -85,7 +86,7 @@ export default function Teacher({ profile }) {
     </section>
 
     <nav className="tabs" role="tablist" aria-label="Dashboard sections">
-      {tabs.map(({ id, label, icon: Icon }) => <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'tab active' : 'tab'} onClick={() => choose(id)}><Icon size={17}/>{label}{id === 'homework' && toMark > 0 && <span className="tab-count">{toMark}</span>}</button>)}
+      {tabs.map(({ id, label, icon: Icon }) => <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'tab active' : 'tab'} onClick={() => choose(id)}><Icon size={17}/>{label}{id === 'homework' && toMark > 0 && <span className="tab-count">{toMark}</span>}{id === 'tests' && testsToMark > 0 && <span className="tab-count">{testsToMark}</span>}</button>)}
     </nav>
 
     <div role="tabpanel">

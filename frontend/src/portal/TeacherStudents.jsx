@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Copy, KeyRound, LineChart, MessageCircle, Pencil, UserPlus, Users, Wand2 } from 'lucide-react';
+import { Copy, FileText, KeyRound, LineChart, MessageCircle, Pencil, UserPlus, Users, Wand2 } from 'lucide-react';
+import ParentReport from './ParentReport';
 import ProgressChart, { progressPoints } from './ProgressChart';
 import { api, must, supabase } from './supabase';
 import { Empty, Notice, useAction } from './shared';
@@ -72,7 +73,9 @@ function AddStudent({ reload, onCreated }) {
   </form>;
 }
 
-function StudentCard({ student, login, upcoming, now, reload, points }) {
+function StudentCard({ student, login, upcoming, now, reload, homework, tests }) {
+  const points = progressPoints(homework, tests);
+  const [report, setReport] = useState(false);
   const [mode, setMode] = useState(null); // 'edit' | 'password' | 'progress'
   const [form, setForm] = useState({ full_name: student.full_name, grade: student.grade ?? '', board: student.board ?? '', timezone: student.timezone });
   const [newPassword, setNewPassword] = useState('');
@@ -114,9 +117,11 @@ function StudentCard({ student, login, upcoming, now, reload, points }) {
     </dl>
     <div className="row">
       <button className="btn btn-ghost btn-small" onClick={() => setMode(mode === 'progress' ? null : 'progress')} aria-pressed={mode === 'progress'}><LineChart size={15}/>Progress</button>
+      <button className="btn btn-ghost btn-small" onClick={() => setReport(true)}><FileText size={15}/>Parent report</button>
       <button className="btn btn-ghost btn-small" onClick={() => { setMode(mode === 'edit' ? null : 'edit'); setResetDone(null); }}><Pencil size={15}/>Edit details</button>
       <button className="btn btn-ghost btn-small" onClick={() => { setMode(mode === 'password' ? null : 'password'); setNewPassword(generatePassword()); setResetDone(null); }}><KeyRound size={15}/>Reset password</button>
     </div>
+    {report && <ParentReport student={student} homework={homework} tests={tests} onClose={() => setReport(false)}/>}
     {mode === 'progress' && <div className="inset"><ProgressChart points={points} title={`${student.full_name.split(' ')[0]}’s scores`}/></div>}
     {mode === 'edit' && <form className="form inset" onSubmit={save}>
       <label>Name<input value={form.full_name} onChange={set('full_name')} required maxLength={80}/></label>
@@ -154,7 +159,7 @@ export default function TeacherStudents({ students, classes, homework = [], test
       <h2 className="card-title"><Users size={20}/>Your students</h2>
       {loginError && <Notice>{`${loginError} Adding students and resetting passwords need the backend.`}</Notice>}
       {students.length ? <ul className="student-list">{students.map((s) => <StudentCard key={s.id} student={s} login={logins[s.id]} now={now} reload={reload}
-        points={progressPoints(homework.filter((h) => h.student_id === s.id), tests.filter((t) => t.student_id === s.id))}
+        homework={homework.filter((h) => h.student_id === s.id)} tests={tests.filter((t) => t.student_id === s.id)}
         upcoming={classes.filter((c) => c.student_id === s.id && c.status !== 'cancelled' && new Date(c.starts_at).getTime() > now).length}/>)}</ul>
         : <Empty icon={Users} title="No students yet">Create the first login with the form.</Empty>}
     </section>
