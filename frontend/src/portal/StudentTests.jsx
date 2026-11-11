@@ -58,6 +58,7 @@ export default function StudentTests({ tests, now, onStart }) {
       <span className="subject-tag">{t.subject}</span>
       <strong>{t.title}</strong>
       <span className="muted small">{t.question_count} questions · {t.state === 'upcoming' ? `opens ${dateTimeLabel(t.opens_at)}` : `closes ${dateTimeLabel(t.closes_at)}`}</span>
+      {t.monitoring && t.state !== 'finished' && <span className="badge badge-muted cam-badge">📷 Camera & microphone needed</span>}
     </div>
     <div className="test-side">
       {(t.state === 'open' || t.state === 'in_progress') && <button className="btn btn-primary" onClick={() => onStart(t)}><PlayCircle size={18}/>{t.state === 'in_progress' ? 'Continue test' : 'Start test'}</button>}

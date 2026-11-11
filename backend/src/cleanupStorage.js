@@ -68,6 +68,12 @@ export async function cleanupStorage(admin, { dryRun = true, minAgeHours = 24, o
       }
     }
   }
+  // Camera/microphone flag details are kept for 10 days only (the per-result summary stays).
+  let flagsDeleted = 0;
+  if (!dryRun) {
+    const { data, error } = await admin.from('attempt_flags').delete().lt('created_at', new Date(Date.now() - 10 * 86400000).toISOString()).select('id');
+    if (!error) flagsDeleted = data?.length ?? 0; // table missing (monitoring not set up yet) is fine
+  }
   const bytes = orphans.reduce((s, f) => s + Number(f.size || 0), 0);
   return {
     dryRun,
@@ -76,6 +82,7 @@ export async function cleanupStorage(admin, { dryRun = true, minAgeHours = 24, o
     unusedFiles: orphans.length,
     unusedBytes: bytes,
     removed,
+    flagsDeleted,
     byBucket: Object.fromEntries(BUCKETS.map((b) => [b, orphans.filter((f) => f.bucket === b).length])),
   };
 }

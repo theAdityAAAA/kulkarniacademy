@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ArrowRight, Camera, CheckCircle2, Clock, Maximize, ShieldCheck, Trophy, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Camera, CheckCircle2, Clock, Maximize, ShieldCheck, Trophy, Video, X } from 'lucide-react';
 import { checkFile, friendlyError, supabase, uploadFile } from './supabase';
 import { Notice } from './shared';
 import { dateTimeLabel } from './time';
@@ -56,6 +56,15 @@ export default function TestRunner({ test, onClose }) {
   const [writtenText, setWrittenText] = useState('');
   const [photos, setPhotos] = useState([]);
   const [backToFullscreen, setBackToFullscreen] = useState(false);
+  // Camera & microphone monitoring (only for tests where the teacher switched it on).
+  const monitoring = Boolean(test.monitoring);
+  const videoRef = useRef(null);
+  const monitorRef = useRef(null);
+  const runningRef = useRef(false);
+  const [monitorStatus, setMonitorStatus] = useState(null); // { faces, warning, ready }
+  const [seenFace, setSeenFace] = useState(false);
+  const [cameraBusy, setCameraBusy] = useState(false);
+  const [consent, setConsent] = useState(false);
   const lastExit = useRef(0);
   const pickingUntil = useRef(0); // choosing a photo leaves the page on phones: that is not cheating
   const submitting = useRef(false);
@@ -74,13 +83,34 @@ export default function TestRunner({ test, onClose }) {
     setPhotos([]);
     submitting.current = false;
     if (next?.status === 'in_progress') setDeadline(Date.now() + next.question.seconds_left * 1000);
-    if (next?.status === 'finished') leaveFullscreen();
+    if (next?.status === 'finished') { leaveFullscreen(); monitorRef.current?.stop(); monitorRef.current = null; }
   }, []);
+
+  const startCamera = async () => {
+    setCameraBusy(true); setError('');
+    try {
+      const { startMonitor } = await import('./monitor.js');
+      monitorRef.current?.stop();
+      monitorRef.current = await startMonitor({
+        video: videoRef.current,
+        onStatus: (status) => { setMonitorStatus(status); if (status.faces > 0 && status.steady) setSeenFace(true); },
+        // Only report while the test is actually running (not while reading the rules).
+        onFlag: (flag) => { if (runningRef.current) supabase.rpc('test_flag', { p_test: test.id, p_kind: flag.kind, p_seconds: flag.seconds }).then(() => {}, () => {}); },
+      });
+    } catch (err) {
+      const { cameraErrorMessage } = await import('./monitor.js').catch(() => ({ cameraErrorMessage: (e) => e?.message }));
+      setError(cameraErrorMessage(err));
+    } finally { setCameraBusy(false); }
+  };
 
   const start = async () => {
     setBusy(true); setError('');
     if (canFullscreen()) await enterFullscreen();
-    try { apply(await rpc('test_start', { p_test: test.id })); } catch (err) { setError(err.message); leaveFullscreen(); } finally { setBusy(false); }
+    try {
+      const next = await rpc('test_start', { p_test: test.id });
+      if (monitoring) supabase.rpc('test_monitoring_agree', { p_test: test.id }).then(() => {}, () => {});
+      apply(next);
+    } catch (err) { setError(err.message); leaveFullscreen(); } finally { setBusy(false); }
   };
 
   const submit = useCallback(async (timedOut = false) => {
@@ -137,9 +167,14 @@ export default function TestRunner({ test, onClose }) {
     return () => { document.removeEventListener('visibilitychange', onVisibility); document.removeEventListener('fullscreenchange', onFullscreen); };
   }, [running, test.id, apply]);
 
-  useEffect(() => () => leaveFullscreen(), []);
+  useEffect(() => () => { leaveFullscreen(); monitorRef.current?.stop(); }, []);
+  useEffect(() => { runningRef.current = running; }, [running]);
+  // Start downloading the face detector while the student reads the rules.
+  useEffect(() => { if (monitoring) import('./monitor.js').then((m) => m.loadDetector()).catch(() => {}); }, [monitoring]);
 
-  const close = () => { leaveFullscreen(); onClose(); };
+  const close = () => { leaveFullscreen(); monitorRef.current?.stop(); monitorRef.current = null; onClose(); };
+  const cameraReady = !monitoring || (monitorStatus?.ready && seenFace);
+  const warningText = { no_face: 'We can’t see your face. Please stay in front of the camera.', multiple_faces: 'More than one person is in view. You must work on your own.', camera_off: 'Your camera has stopped. Please turn it back on.', talking: 'We can hear talking. Please work quietly on your own.' }[monitorStatus?.warning] ?? null;
   const block = (event) => event.preventDefault();
 
   return <div className="runner" onCopy={block} onCut={block} onContextMenu={block}>
@@ -156,8 +191,16 @@ export default function TestRunner({ test, onClose }) {
         <li><strong>Written questions:</strong> type your answer and/or take a photo of your working. Adding a photo doesn’t count as leaving.</li>
         <li><strong>One attempt only.</strong> Work on your own, with paper and pencil ready.</li>
       </ul>
+      {monitoring && <div className="monitor-setup">
+        <strong><Video size={18}/> This test uses your camera and microphone</strong>
+        <p className="small">They check that you’re working on your own: your face stays in view, nobody else is with you, and there’s no talking. <strong>Nothing is recorded or saved</strong> (no photos, no video, no sound). Your teacher only sees short notes like “face not visible for 20 seconds at question 4”.</p>
+        <label className="inline-check"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}/>My parent or guardian knows this test uses the camera and microphone.</label>
+        {!monitorStatus ? <button className="btn btn-ghost" onClick={startCamera} disabled={cameraBusy || !consent}><Camera size={17}/>{cameraBusy ? 'Starting camera…' : 'Turn on camera & microphone'}</button>
+          : seenFace ? <p className="monitor-ok"><CheckCircle2 size={17}/> Camera ready. We can see you.</p>
+          : <p className="monitor-wait">Looking for your face… sit in front of the camera with your face well lit.</p>}
+      </div>}
       <Notice>{error}</Notice>
-      <button className="btn btn-primary btn-wide btn-big" onClick={start} disabled={busy}><Maximize size={19}/>{busy ? 'Starting…' : test.attempt ? 'Continue test' : 'Start test'}</button>
+      <button className="btn btn-primary btn-wide btn-big" onClick={start} disabled={busy || !cameraReady}><Maximize size={19}/>{busy ? 'Starting…' : test.attempt ? 'Continue test' : 'Start test'}</button>
     </div>}
 
     {running && <div className="runner-card runner-question">
@@ -172,7 +215,7 @@ export default function TestRunner({ test, onClose }) {
         <span className="badge badge-accent">{question.marks} mark{question.marks > 1 ? 's' : ''} · your teacher marks this</span>
         <label>Your answer <span className="optional">(type it, or add a photo of your working, or both)</span>
           <textarea rows={5} value={writtenText} onChange={(e) => setWrittenText(e.target.value)} maxLength={5000} placeholder="Write your answer and working here…"/></label>
-        <label className="file-pick" onClick={() => { pickingUntil.current = Date.now() + 180000; }}>
+        <label className="file-pick" onClick={() => { pickingUntil.current = Date.now() + 180000; monitorRef.current?.pause(180000); }}>
           <Camera size={18}/>{photos.length ? 'Add another photo' : 'Take or add a photo of your working'}
           <input type="file" accept="image/*,application/pdf" multiple onChange={(e) => {
             const picked = Array.from(e.target.files ?? []);
@@ -180,6 +223,7 @@ export default function TestRunner({ test, onClose }) {
             if (bad) setError(bad); else setPhotos((list) => [...list, ...picked].slice(0, 6));
             e.target.value = '';
             pickingUntil.current = Date.now() + 3000;
+            monitorRef.current?.resume();
           }}/>
         </label>
         {photos.length > 0 && <ul className="photo-list">{photos.map((f, i) => <li key={i}>{f.name}<button type="button" className="icon-btn" onClick={() => setPhotos((list) => list.filter((_, j) => j !== i))} aria-label={`Remove ${f.name}`}><X size={14}/></button></li>)}</ul>}
@@ -195,6 +239,12 @@ export default function TestRunner({ test, onClose }) {
     </div>}
 
     {view?.status === 'finished' && <Finished view={view} onClose={close}/>}
+
+    {monitoring && <div className={`selfview ${view ? 'small' : 'large'} ${monitorStatus ? '' : 'off'} ${view?.status === 'finished' ? 'gone' : ''}`} aria-label="Your camera">
+      <video ref={videoRef} muted playsInline autoPlay/>
+      <span className={`selfview-dot ${monitorStatus?.warning ? 'warn' : 'ok'}`}>{monitorStatus ? (monitorStatus.warning ? '!' : '●') : ''}</span>
+    </div>}
+    {monitoring && running && warningText && !warning && <div className="monitor-warning" role="alert"><AlertTriangle size={18}/>{warningText}</div>}
 
     {backToFullscreen && running && !warning && <div className="runner-return">
       <button className="btn btn-primary" onClick={() => { setBackToFullscreen(false); enterFullscreen(); }}><Maximize size={17}/>Back to full screen</button>

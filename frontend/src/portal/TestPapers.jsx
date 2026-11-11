@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Check, ChevronDown, ClipboardList, Copy, FilePlus2, Lightbulb, Lock, Pencil, PenLine, RotateCcw, Send, Shuffle, Trash2, Upload, X } from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, ClipboardList, Copy, FilePlus2, Lightbulb, Lock, Pencil, PenLine, RotateCcw, Send, Shuffle, Trash2, Upload, Video, X } from 'lucide-react';
 import { firstOf, must, supabase } from './supabase';
 import { Empty, FileLink, Notice, TEST_SUBJECTS, useAction } from './shared';
-import { dateTimeLabel } from './time';
+import { dateTimeLabel, timeLabel as timeOnly } from './time';
 import { QuestionForm, QuestionRow } from './PaperQuestions';
 import ImportQuestions from './ImportQuestions';
 
@@ -149,6 +149,36 @@ function ReteachReport({ questions, tests }) {
   </div>;
 }
 
+// ─── Camera & microphone monitoring ────────────────────────────────────────
+const FLAG_LABEL = { no_face: 'Face not visible', multiple_faces: 'More than one person in view', camera_off: 'Camera turned off', talking: 'Talking heard', mic_off: 'Microphone turned off' };
+const flagCount = (a) => Object.values(a?.monitor_summary ?? {}).reduce((s, n) => s + Number(n || 0), 0);
+
+function MonitorReport({ attempt }) {
+  const [flags, setFlags] = useState(null);
+  const { error, run } = useAction();
+  React.useEffect(() => {
+    run(async () => setFlags(must(await supabase.from('attempt_flags').select('kind, seconds, question_position, created_at').eq('attempt_id', attempt.id).order('created_at'))));
+  }, [attempt.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const total = flagCount(attempt);
+  const summary = Object.entries(attempt.monitor_summary ?? {}).filter(([, n]) => n > 0).map(([k, n]) => `${FLAG_LABEL[k] ?? k} ×${n}`).join(' · ');
+  return <div className="monitor-report">
+    <h4><Video size={16}/>Camera & microphone</h4>
+    {!attempt.monitoring_agreed_at && !total ? <p className="muted small">Monitoring was not on for this attempt.</p>
+      : !total ? <p className="small monitor-clean"><Check size={15}/> Camera and microphone were on the whole time. Nothing unusual.</p>
+      : <>
+        <p className="small"><strong>{total} flag{total > 1 ? 's' : ''}:</strong> {summary}</p>
+        <Notice>{error}</Notice>
+        {flags === null ? <p className="muted small">Loading…</p>
+          : flags.length ? <ul className="flag-list">{flags.map((f, i) => <li key={i}>
+              <span className="muted small">{timeOnly(f.created_at)}{f.question_position ? ` · Q${f.question_position}` : ''}</span>
+              <span>{FLAG_LABEL[f.kind] ?? f.kind}{f.seconds ? ` for ${f.seconds} s` : ''}</span>
+            </li>)}</ul>
+          : <p className="muted small">The detailed times were deleted after 10 days.</p>}
+        <p className="hint">Flags are hints, not proof: poor lighting or leaning back can hide a face, and family noise can sound like talking.</p>
+      </>}
+  </div>;
+}
+
 function ResultItem({ test, student, reload, now }) {
   const [open, setOpen] = useState(false);
   const { busy, error, run } = useAction();
@@ -166,6 +196,7 @@ function ResultItem({ test, student, reload, now }) {
     <button className="hw-summary" onClick={() => setOpen(!open)} aria-expanded={open}>
       <span className="hw-main"><strong>{student?.full_name ?? 'Removed student'}</strong><span className="muted small">open {dateTimeLabel(test.opens_at)} → {dateTimeLabel(test.closes_at)}</span></span>
       {a?.exits > 0 && <span className="badge badge-warn" title="Times the student left full screen or switched apps">Left {a.exits}×</span>}
+      {flagCount(a) > 0 && <span className="badge badge-warn" title="Camera & microphone flags"><Video size={12}/>{flagCount(a)}</span>}
       {status}
       <ChevronDown size={18} className={open ? 'chev open' : 'chev'}/>
     </button>
@@ -175,6 +206,7 @@ function ResultItem({ test, student, reload, now }) {
         <span>{Number(a.points)} of {Number(a.max_points)} marks{a.pending_marks > 0 ? ` so far (${a.pending_marks} written answer${a.pending_marks > 1 ? 's' : ''} to mark)` : ''}</span>
         {a.finish_reason === 'exits' && <span className="badge badge-warn">Auto-submitted after {a.exits} exits</span>}
       </div>}
+      {a && test.monitoring && <MonitorReport attempt={a}/>}
       {a && <AttemptDetail attempt={a} reload={reload}/>}
       <Notice>{error}</Notice>
       <div className="row">
@@ -200,7 +232,7 @@ function AssignForm({ paper, count, students, assigned, reload }) {
     run(async () => {
       must(await supabase.from('tests').insert(form.studentIds.map((id) => ({
         student_id: id, paper_id: paper.id, title: paper.title, subject: paper.subject, topics: [], grade: paper.grade,
-        question_count: count, opens_at: opens.toISOString(), closes_at: closes.toISOString(), max_exits: 3,
+        question_count: count, opens_at: opens.toISOString(), closes_at: closes.toISOString(), max_exits: 3, monitoring: paper.monitoring ?? false,
       }))));
       setSaved(`Given to ${form.studentIds.length} student${form.studentIds.length > 1 ? 's' : ''}. They’ll see it in their portal.`);
       setForm((f) => ({ ...f, studentIds: [] }));
@@ -247,7 +279,7 @@ function PaperView({ paper, questions, tests, students, reload, now, onBack, onO
   const removeQuestion = (q, i) => { if (confirm(`Remove question ${i + 1}?`)) run(async () => { must(await supabase.from('questions').delete().eq('id', q.id)); await reload(); }); };
   const rename = (event) => { event.preventDefault(); run(async () => { must(await supabase.from('papers').update({ title: title.trim() }).eq('id', paper.id)); must(await supabase.from('tests').update({ title: title.trim() }).eq('paper_id', paper.id)); setRenaming(false); await reload(); }); };
   const duplicate = () => run(async () => {
-    const copy = must(await supabase.from('papers').insert({ title: `${paper.title} (copy)`.slice(0, 150), subject: paper.subject, grade: paper.grade, shuffle_questions: paper.shuffle_questions ?? false }).select().single());
+    const copy = must(await supabase.from('papers').insert({ title: `${paper.title} (copy)`.slice(0, 150), subject: paper.subject, grade: paper.grade, shuffle_questions: paper.shuffle_questions ?? false, monitoring: paper.monitoring ?? false }).select().single());
     if (questions.length) must(await supabase.from('questions').insert(questions.map(({ id, created_at, paper_id, ...q }) => ({ ...q, paper_id: copy.id }))));
     await reload();
     onOpen(copy.id);
@@ -280,6 +312,7 @@ function PaperView({ paper, questions, tests, students, reload, now, onBack, onO
       <div className="row">
         {questions.length > 0 && <button className="btn btn-primary btn-small" onClick={() => { const el = document.getElementById('give-test'); el?.scrollIntoView({ behavior: 'smooth', block: 'start' }); el?.querySelector('input')?.focus({ preventScroll: true }); }}><Send size={15}/>Give to students</button>}
         <label className="inline-check shuffle-toggle" title="Each student gets the questions in a different random order"><input type="checkbox" checked={paper.shuffle_questions ?? false} disabled={busy} onChange={(e) => run(async () => { must(await supabase.from('papers').update({ shuffle_questions: e.target.checked }).eq('id', paper.id)); await reload(); })}/><Shuffle size={15}/>Shuffle order for each student</label>
+        <label className="inline-check shuffle-toggle" title="Students must turn on camera & microphone; nothing is recorded, only flags like ‘face not visible for 20 s’"><input type="checkbox" checked={paper.monitoring ?? false} disabled={busy} onChange={(e) => run(async () => { must(await supabase.from('papers').update({ monitoring: e.target.checked }).eq('id', paper.id)); must(await supabase.from('tests').update({ monitoring: e.target.checked }).eq('paper_id', paper.id)); await reload(); })}/><Video size={15}/>Camera & microphone monitoring</label>
         <button className="btn btn-ghost btn-small" onClick={duplicate} disabled={busy}><Copy size={15}/>Duplicate</button>
         <button className="btn btn-ghost btn-small danger-text" onClick={removePaper} disabled={busy}><Trash2 size={15}/>Delete test</button>
       </div>

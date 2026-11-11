@@ -317,3 +317,27 @@
 .moved-note{font-size:14px;font-weight:600;opacity:.9}
 
 .storage-report{display:grid;gap:8px;justify-items:start;padding:12px 14px;border-radius:10px;background:var(--bg);font-size:15px}
+
+
+/* ─── Camera & microphone monitoring ─── */
+.monitor-setup{display:grid;gap:10px;padding:14px 16px;border-radius:12px;background:var(--purple-soft);border:1px solid var(--line-strong)}
+.monitor-setup strong{display:flex;align-items:center;gap:8px}
+.monitor-setup .btn{justify-self:start}
+.monitor-ok{display:flex;align-items:center;gap:6px;color:#24603c;font-weight:700}
+.monitor-wait{color:#7a4a00;font-weight:600;font-size:14px}
+.selfview{position:fixed;z-index:58;right:16px;bottom:16px;width:160px;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#1d3352;box-shadow:0 8px 24px #1d335244;border:2px solid #fff}
+.selfview.large{width:240px}
+.selfview.off{opacity:0;pointer-events:none}
+.selfview.gone{display:none}
+.selfview video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.selfview-dot{position:absolute;top:6px;left:8px;font-size:12px;font-weight:800}
+.selfview-dot.ok{color:#4cd07d}
+.selfview-dot.warn{color:#ffb347}
+.monitor-warning{position:fixed;z-index:59;left:50%;top:16px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;max-width:calc(100% - 32px);padding:10px 16px;border-radius:12px;background:#fdf1dc;color:#7a4a00;font-weight:700;box-shadow:0 8px 24px #1d335222}
+.monitor-report{display:grid;gap:8px;padding:12px 14px;border-radius:10px;background:var(--bg)}
+.monitor-report h4{display:flex;align-items:center;gap:6px;margin:0;font-size:15px;color:var(--navy)}
+.monitor-clean{display:flex;align-items:center;gap:6px;color:#24603c}
+.flag-list{margin:0;padding:0;list-style:none;display:grid;gap:4px}
+.flag-list li{display:flex;gap:10px;font-size:14px}
+.cam-badge{justify-self:start;margin-top:4px}
+@media(max-width:640px){.selfview{width:110px;right:10px;bottom:10px}.selfview.large{width:150px}}
