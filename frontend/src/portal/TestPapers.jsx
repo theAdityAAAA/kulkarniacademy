@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Check, ChevronDown, ClipboardList, Copy, FilePlus2, Lightbulb, Lock, Pencil, PenLine, RotateCcw, Send, Shuffle, Trash2, Upload, Video, X } from 'lucide-react';
+import { ArrowLeft, CalendarClock, Check, ChevronDown, ClipboardList, Copy, FilePlus2, Lightbulb, Lock, Pencil, PenLine, RotateCcw, Send, Shuffle, Trash2, Upload, Video, X } from 'lucide-react';
 import { firstOf, must, supabase } from './supabase';
 import { Empty, FileLink, Notice, TEST_SUBJECTS, useAction } from './shared';
 import { dateTimeLabel, timeLabel as timeOnly } from './time';
@@ -11,6 +11,12 @@ import ImportQuestions from './ImportQuestions';
 const toInput = (date) => {
   const d = new Date(date); const p = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+/** Groups each student's first attempt with its re-attempts: [[first, second, …], …] */
+const groupAttempts = (tests) => {
+  const groups = new Map();
+  for (const t of tests) { const key = t.retake_of ?? t.id; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(t); }
+  return [...groups.values()];
 };
 const pct = (a) => (Number(a?.max_points) ? Math.round((Number(a.points) / Number(a.max_points)) * 100) : 0);
 
@@ -179,40 +185,109 @@ function MonitorReport({ attempt }) {
   </div>;
 }
 
-function ResultItem({ test, student, reload, now }) {
-  const [open, setOpen] = useState(false);
+function attemptStatus(test, a, now) {
+  const opens = new Date(test.opens_at).getTime(), closes = new Date(test.closes_at).getTime();
+  if (a?.finished_at && a.pending_marks > 0) return <span className="badge badge-warn">{a.pending_marks} to mark</span>;
+  if (a?.finished_at) return <span className="badge badge-success">{pct(a)}%</span>;
+  if (a) return <span className="badge badge-accent">In progress</span>;
+  if (now < opens) return <span className="badge badge-muted">Opens {dateTimeLabel(test.opens_at)}</span>;
+  if (now > closes) return <span className="badge badge-warn">Missed</span>;
+  return <span className="badge badge-muted">Not started</span>;
+}
+
+/** Pick an open/close window (your time). */
+function WindowForm({ title, hint, submitLabel, busy, onSubmit, onCancel, days = 3 }) {
+  const [opens, setOpens] = useState(toInput(Date.now()));
+  const [closes, setCloses] = useState(toInput(Date.now() + days * 86400000));
+  const [problem, setProblem] = useState('');
+  const submit = (event) => {
+    event.preventDefault();
+    const o = new Date(opens), c = new Date(closes);
+    if (!(c > o)) { setProblem('The closing time must be after the opening time.'); return; }
+    if (c.getTime() < Date.now()) { setProblem('The closing time is in the past.'); return; }
+    onSubmit(o, c);
+  };
+  return <form className="form inset window-form" onSubmit={submit}>
+    <strong>{title}</strong>
+    {hint && <p className="hint">{hint}</p>}
+    <div className="grid-2">
+      <label>Opens <span className="optional">(your time)</span><input type="datetime-local" value={opens} onChange={(e) => setOpens(e.target.value)} required/></label>
+      <label>Closes<input type="datetime-local" value={closes} onChange={(e) => setCloses(e.target.value)} required/></label>
+    </div>
+    {problem && <p className="error-text">{problem}</p>}
+    <div className="row"><button className="btn btn-primary btn-small" disabled={busy}>{busy ? 'Saving…' : submitLabel}</button><button type="button" className="link-btn" onClick={onCancel}>Cancel</button></div>
+  </form>;
+}
+
+/** One attempt inside a student's results. */
+function AttemptBlock({ test, label, reload, now, latest }) {
   const { busy, error, run } = useAction();
   const a = firstOf(test.test_attempts);
-  const opens = new Date(test.opens_at).getTime(), closes = new Date(test.closes_at).getTime();
-  const status = a?.finished_at && a.pending_marks > 0 ? <span className="badge badge-warn">{a.pending_marks} to mark</span>
-    : a?.finished_at ? <span className="badge badge-success">{pct(a)}%</span>
-    : a ? <span className="badge badge-accent">In progress</span>
-    : now < opens ? <span className="badge badge-muted">Opens {dateTimeLabel(test.opens_at)}</span>
-    : now > closes ? <span className="badge badge-warn">Missed</span>
-    : <span className="badge badge-muted">Not started</span>;
-  const retake = () => { if (confirm(`Delete ${student?.full_name ?? 'the student'}’s attempt so they can take it again?`)) run(async () => { must(await supabase.from('test_attempts').delete().eq('id', a.id)); await reload(); }); };
-  const remove = () => { if (confirm(`Take this test away from ${student?.full_name ?? 'this student'}? Their result will be deleted.`)) run(async () => { must(await supabase.from('tests').delete().eq('id', test.id)); await reload(); }); };
+  const reset = () => { if (confirm('Delete this attempt’s answers so the student can start it again? Use this for technical problems (e.g. their internet failed). To keep this score, use “Give another attempt” instead.')) run(async () => { must(await supabase.from('test_attempts').delete().eq('id', a.id)); await reload(); }); };
+  return <div className={`attempt-block ${latest ? 'latest' : ''}`}>
+    <div className="attempt-head"><strong>{label}</strong><span className="muted small">open {dateTimeLabel(test.opens_at)} → {dateTimeLabel(test.closes_at)}</span>{attemptStatus(test, a, now)}</div>
+    {a?.finished_at && <div className="result-line">
+      <strong>{pct(a)}%</strong>
+      <span>{Number(a.points)} of {Number(a.max_points)} marks{a.pending_marks > 0 ? ` so far (${a.pending_marks} written answer${a.pending_marks > 1 ? 's' : ''} to mark)` : ''}</span>
+      {a.finish_reason === 'exits' && <span className="badge badge-warn">Auto-submitted after {a.exits} exits</span>}
+    </div>}
+    {a && test.monitoring && <MonitorReport attempt={a}/>}
+    {a && <AttemptDetail attempt={a} reload={reload}/>}
+    <Notice>{error}</Notice>
+    {a && latest && <button className="link-btn" onClick={reset} disabled={busy}><RotateCcw size={15}/>Reset this attempt (technical problem)</button>}
+  </div>;
+}
+
+/** All of one student's attempts at this test, newest first. */
+function ResultGroup({ tests, student, count, reload, now }) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(null); // 'again' | 'dates'
+  const { busy, error, run } = useAction();
+  const sorted = [...tests].sort((x, y) => x.attempt_no - y.attempt_no);
+  const root = sorted[0], latest = sorted.at(-1);
+  const la = firstOf(latest.test_attempts);
+  const missed = !la && now > new Date(latest.closes_at).getTime();
+  const earlier = sorted.slice(0, -1).map((t) => firstOf(t.test_attempts)).filter((a) => a?.finished_at);
+  const flags = flagCount(la);
+  const name = student?.full_name ?? 'this student';
+
+  const giveAgain = (opens, closes) => run(async () => {
+    must(await supabase.from('tests').insert({
+      student_id: latest.student_id, paper_id: latest.paper_id, title: latest.title, subject: latest.subject, topics: latest.topics ?? [],
+      grade: latest.grade, question_count: count, max_exits: latest.max_exits, monitoring: latest.monitoring ?? false,
+      opens_at: opens.toISOString(), closes_at: closes.toISOString(), attempt_no: latest.attempt_no + 1, retake_of: root.id,
+    }));
+    setForm(null); setOpen(true);
+    await reload();
+  });
+  const changeDates = (opens, closes) => run(async () => {
+    must(await supabase.from('tests').update({ opens_at: opens.toISOString(), closes_at: closes.toISOString() }).eq('id', latest.id));
+    setForm(null);
+    await reload();
+  });
+  const removeAll = () => { if (confirm(`Take this test away from ${name}? All ${sorted.length > 1 ? `${sorted.length} attempts and their results` : 'their results'} will be deleted.`)) run(async () => { must(await supabase.from('tests').delete().eq('id', root.id)); await reload(); }); };
+
   return <li className="hw-item">
     <button className="hw-summary" onClick={() => setOpen(!open)} aria-expanded={open}>
-      <span className="hw-main"><strong>{student?.full_name ?? 'Removed student'}</strong><span className="muted small">open {dateTimeLabel(test.opens_at)} → {dateTimeLabel(test.closes_at)}</span></span>
-      {a?.exits > 0 && <span className="badge badge-warn" title="Times the student left full screen or switched apps">Left {a.exits}×</span>}
-      {flagCount(a) > 0 && <span className="badge badge-warn" title="Camera & microphone flags"><Video size={12}/>{flagCount(a)}</span>}
-      {status}
+      <span className="hw-main"><strong>{student?.full_name ?? 'Removed student'}</strong>
+        <span className="muted small">{sorted.length > 1 ? `Attempt ${latest.attempt_no}` : `open ${dateTimeLabel(latest.opens_at)} → ${dateTimeLabel(latest.closes_at)}`}
+          {earlier.length > 0 && ` · earlier: ${earlier.map((a) => `${pct(a)}%`).join(', ')}`}</span></span>
+      {la?.exits > 0 && <span className="badge badge-warn" title="Times the student left full screen or switched apps">Left {la.exits}×</span>}
+      {flags > 0 && <span className="badge badge-warn" title="Camera & microphone flags"><Video size={12}/>{flags}</span>}
+      {attemptStatus(latest, la, now)}
       <ChevronDown size={18} className={open ? 'chev open' : 'chev'}/>
     </button>
     {open && <div className="hw-detail">
-      {a?.finished_at && <div className="result-line">
-        <strong>{pct(a)}%</strong>
-        <span>{Number(a.points)} of {Number(a.max_points)} marks{a.pending_marks > 0 ? ` so far (${a.pending_marks} written answer${a.pending_marks > 1 ? 's' : ''} to mark)` : ''}</span>
-        {a.finish_reason === 'exits' && <span className="badge badge-warn">Auto-submitted after {a.exits} exits</span>}
-      </div>}
-      {a && test.monitoring && <MonitorReport attempt={a}/>}
-      {a && <AttemptDetail attempt={a} reload={reload}/>}
-      <Notice>{error}</Notice>
       <div className="row">
-        {a && <button className="link-btn" onClick={retake} disabled={busy}><RotateCcw size={15}/>Allow a retake</button>}
-        <button className="link-btn danger" onClick={remove} disabled={busy}><Trash2 size={15}/>Take test away</button>
+        {la?.finished_at && <button className="btn btn-primary btn-small" onClick={() => setForm(form === 'again' ? null : 'again')}><RotateCcw size={15}/>Give another attempt</button>}
+        {(!la || !la.finished_at) && <button className="btn btn-ghost btn-small" onClick={() => setForm(form === 'dates' ? null : 'dates')}><CalendarClock size={15}/>{missed ? 'Reopen (change dates)' : 'Change dates'}</button>}
+        <button className="link-btn danger" onClick={removeAll} disabled={busy}><Trash2 size={15}/>Take test away</button>
       </div>
+      {form === 'again' && <WindowForm title={`Attempt ${latest.attempt_no + 1} for ${name}`} submitLabel="Give another attempt" busy={busy} onSubmit={giveAgain} onCancel={() => setForm(null)}
+        hint={`Same ${count} questions${latest.monitoring ? ', with camera monitoring' : ''}. Earlier attempts and scores are kept. While this attempt is open, ${name.split(' ')[0]} can’t see the earlier answers. Tip: tick “Shuffle order” on the test so the questions come in a new order.`}/>}
+      {form === 'dates' && <WindowForm title={missed ? `Reopen for ${name}` : 'Change dates'} submitLabel="Save dates" busy={busy} onSubmit={changeDates} onCancel={() => setForm(null)}/>}
+      <Notice>{error}</Notice>
+      {[...sorted].reverse().map((t) => <AttemptBlock key={t.id} test={t} label={sorted.length > 1 ? `Attempt ${t.attempt_no}` : 'Result'} latest={t.id === latest.id} reload={reload} now={now}/>)}
     </div>}
   </li>;
 }
@@ -298,7 +373,7 @@ function PaperView({ paper, questions, tests, students, reload, now, onBack, onO
     </section>
     <section className="card">
       <h2 className="card-title"><Check size={20}/>Results</h2>
-      {tests.length ? <ul className="hw-list">{tests.map((t) => <ResultItem key={t.id} test={t} student={byId[t.student_id]} reload={reload} now={now}/>)}</ul>
+      {tests.length ? <ul className="hw-list">{groupAttempts(tests).map((g) => <ResultGroup key={g[0].id} tests={g} student={byId[g[0].student_id]} count={questions.length} reload={reload} now={now}/>)}</ul>
         : <p className="muted small">Not given to anyone yet.</p>}
     </section>
   </>;
@@ -361,7 +436,7 @@ export default function TestPapers({ papers, questions, tests, students, reload,
     <section className="card">
       <h2 className="card-title"><ClipboardList size={20}/>Your tests</h2>
       {papers.length ? <ul className="paper-list">{papers.map((p) => {
-        const ts = testsOf(p.id);
+        const ts = groupAttempts(testsOf(p.id)).map((g) => g.sort((x, y) => x.attempt_no - y.attempt_no).at(-1));
         const done = ts.filter((t) => firstOf(t.test_attempts)?.finished_at);
         const avg = done.length ? Math.round(done.reduce((s, t) => s + pct(firstOf(t.test_attempts)), 0) / done.length) : null;
         return <li key={p.id}><button className="paper-card" onClick={() => open(p.id)}>

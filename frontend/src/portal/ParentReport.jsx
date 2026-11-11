@@ -45,7 +45,7 @@ export default function ParentReport({ student, homework, tests, onClose }) {
     `📘 ${first}'s progress at Kulkarni Academy (${periodLabel})`,
     `• Classes attended: ${held.length}`,
     `• Tests taken: ${doneTests.length}${testAvg !== null ? ` · average ${testAvg}%` : ''}`,
-    ...scored.map(({ t, a }) => `   – ${t.title}: ${pct(a)}%`),
+    ...scored.map(({ t, a }) => `   – ${t.title}${(t.attempt_no ?? 1) > 1 ? ` (attempt ${t.attempt_no})` : ''}: ${pct(a)}%`),
     `• Homework: ${hwIn.length} of ${hwSet.length} handed in${hwAvg !== null ? ` · average ${hwAvg}%` : ''}`,
     note.trim() ? `\n${note.trim()}` : '',
     '\n— Aditya Kulkarni, Kulkarni Academy',
@@ -90,7 +90,7 @@ export default function ParentReport({ student, homework, tests, onClose }) {
       {doneTests.length > 0 && <section className="report-section">
         <h2>Tests</h2>
         <table className="chart-table"><thead><tr><th>Date</th><th>Test</th><th>Score</th></tr></thead>
-          <tbody>{doneTests.map(({ t, a }) => <tr key={t.id}><td>{dayLabel(a.finished_at)}</td><td>{t.title}</td><td>{a.pending_marks ? 'being marked' : `${pct(a)}%`}</td></tr>)}</tbody></table>
+          <tbody>{doneTests.map(({ t, a }) => <tr key={t.id}><td>{dayLabel(a.finished_at)}</td><td>{t.title}{(t.attempt_no ?? 1) > 1 ? ` (attempt ${t.attempt_no})` : ''}</td><td>{a.pending_marks ? 'being marked' : `${pct(a)}%`}</td></tr>)}</tbody></table>
       </section>}
 
       <section className="report-section">

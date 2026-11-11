@@ -341,3 +341,11 @@
 .flag-list li{display:flex;gap:10px;font-size:14px}
 .cam-badge{justify-self:start;margin-top:4px}
 @media(max-width:640px){.selfview{width:110px;right:10px;bottom:10px}.selfview.large{width:150px}}
+
+/* ─── Re-attempts ─── */
+.attempt-badge{margin-left:8px;vertical-align:2px}
+.attempt-block{display:grid;gap:10px;padding:12px;border-radius:10px;border:1px solid var(--line);background:#fff}
+.attempt-block.latest{border-color:var(--line-strong)}
+.attempt-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.attempt-head .badge{margin-left:auto}
+.window-form{display:grid;gap:10px}

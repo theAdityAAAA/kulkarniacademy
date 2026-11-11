@@ -13,7 +13,7 @@ export function progressPoints(homework = [], tests = []) {
   for (const t of tests) {
     const a = firstOf(t.test_attempts);
     if (!a?.finished_at || !Number(a.max_points) || a.pending_marks > 0) continue; // wait until written answers are marked
-    points.push({ id: `t-${t.id}`, date: a.finished_at, pct: (Number(a.points) / Number(a.max_points)) * 100, subject: t.subject, label: t.title, kind: 'Test', detail: `${a.correct_count}/${a.asked_count} correct` });
+    points.push({ id: `t-${t.id}`, date: a.finished_at, pct: (Number(a.points) / Number(a.max_points)) * 100, subject: t.subject, label: (t.attempt_no ?? 1) > 1 ? `${t.title} (attempt ${t.attempt_no})` : t.title, kind: 'Test', detail: `${a.correct_count}/${a.asked_count} correct` });
   }
   return points.sort((x, y) => new Date(x.date) - new Date(y.date));
 }

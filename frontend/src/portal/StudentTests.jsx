@@ -44,7 +44,14 @@ function Review({ test }) {
 
 export default function StudentTests({ tests, now, onStart }) {
   if (!tests.length) return <Empty icon={ClipboardCheck} title="No tests yet">When your teacher sets a test, it will show here.</Empty>;
-  const withState = tests.map((t) => {
+  // Show each test once: its latest attempt, with earlier attempts' scores alongside.
+  const groups = new Map();
+  for (const t of tests) { const key = t.retake_of ?? t.id; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(t); }
+  const latestOnly = [...groups.values()].map((g) => {
+    const sorted = [...g].sort((x, y) => (x.attempt_no ?? 1) - (y.attempt_no ?? 1));
+    return { ...sorted.at(-1), earlier: sorted.slice(0, -1).map((t) => firstOf(t.test_attempts)).filter((a) => a?.finished_at) };
+  });
+  const withState = latestOnly.map((t) => {
     const attempt = firstOf(t.test_attempts);
     const opens = new Date(t.opens_at).getTime(), closes = new Date(t.closes_at).getTime();
     const state = attempt?.finished_at ? 'finished' : attempt ? 'in_progress' : now < opens ? 'upcoming' : now > closes ? 'missed' : 'open';
@@ -56,7 +63,8 @@ export default function StudentTests({ tests, now, onStart }) {
   return <ul className="test-list">{withState.map((t) => <li key={t.id} className={`test-item state-${t.state}`}>
     <div className="test-main">
       <span className="subject-tag">{t.subject}</span>
-      <strong>{t.title}</strong>
+      <strong>{t.title}{(t.attempt_no ?? 1) > 1 && <span className="badge badge-accent attempt-badge">Attempt {t.attempt_no}</span>}</strong>
+      {t.earlier.length > 0 && <span className="muted small">Earlier: {t.earlier.map((a) => `${percent(a)}%`).join(', ')}</span>}
       <span className="muted small">{t.question_count} questions · {t.state === 'upcoming' ? `opens ${dateTimeLabel(t.opens_at)}` : `closes ${dateTimeLabel(t.closes_at)}`}</span>
       {t.monitoring && t.state !== 'finished' && <span className="badge badge-muted cam-badge">📷 Camera & microphone needed</span>}
     </div>
