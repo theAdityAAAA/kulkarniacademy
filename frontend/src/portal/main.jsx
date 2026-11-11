@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ArrowLeft, Download, KeyRound, LogIn, LogOut, MessageCircle, X } from 'lucide-react';
-import { configured, supabase } from './supabase';
+import { configured, friendlyError, supabase } from './supabase';
 import { Notice, Spinner, useAction } from './shared';
 const Teacher = lazy(() => import('./Teacher'));
 const Student = lazy(() => import('./Student'));
@@ -21,7 +21,7 @@ function Login() {
     const data = new FormData(event.currentTarget);
     run(async () => {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email: String(data.get('email')).trim(), password: String(data.get('password')) });
-      if (signInError) throw new Error(signInError.message === 'Invalid login credentials' ? 'That email or password is not right. Please check and try again.' : signInError.message);
+      if (signInError) throw new Error(signInError.message === 'Invalid login credentials' ? 'That email or password is not right. Please check and try again.' : friendlyError(signInError.message));
     });
   };
   return <main className="login-page">
@@ -134,7 +134,22 @@ function App() {
   if (!profile) {
     return <main className="login-page"><div className="login-card"><Brand/><h1>Almost there.</h1><p className="muted">Your login works, but your student account hasn’t been set up yet. Please message your teacher.</p><button className="btn btn-ghost btn-wide" onClick={() => supabase.auth.signOut()}><LogOut size={16}/>Sign out</button></div></main>;
   }
-  return <Shell profile={profile}><Suspense fallback={<Spinner/>}>{profile.role === 'teacher' ? <Teacher profile={profile}/> : <Student profile={profile}/>}</Suspense></Shell>;
+  return <Shell profile={profile}><SafetyNet><Suspense fallback={<Spinner/>}>{profile.role === 'teacher' ? <Teacher profile={profile}/> : <Student profile={profile}/>}</Suspense></SafetyNet></Shell>;
+}
+
+/** If anything unexpected goes wrong while drawing a screen, show a friendly card instead of a blank page. */
+class SafetyNet extends React.Component {
+  constructor(props) { super(props); this.state = { failed: false }; }
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(error) { console.error('Portal screen error:', error); }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return <div className="login-card safety-net" role="alert">
+      <h1>Something went wrong on this screen</h1>
+      <p className="muted">Your saved work is safe. Reloading the page usually fixes it. If it keeps happening, please tell your teacher.</p>
+      <button className="btn btn-primary btn-wide" onClick={() => window.location.reload()}>Reload the page</button>
+    </div>;
+  }
 }
 
 function NotConfigured() {

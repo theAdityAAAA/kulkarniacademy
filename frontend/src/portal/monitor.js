@@ -9,10 +9,10 @@
 //   mic_off         microphone stopped / disconnected
 import { FaceDetector, FilesetResolver } from '@mediapipe/tasks-vision';
 
-const GRACE = { no_face: 10, multiple_faces: 3, camera_off: 5, talking: 4 };
+const GRACE = { no_face: 10, multiple_faces: 2, camera_off: 5, talking: 4 }; // a second person must already be steady for 4 s before this grace starts
 // Measured with real and fake cameras: a clear face scores ~0.8, smaller faces further back ~0.6-0.66,
 // and random patterns can flicker up to ~0.65. Real faces are steady from frame to frame; false ones flicker.
-// So a face counts if it is confident now, or seen steadily (4 of the last 5 checks).
+// So a face counts if it is confident twice in a row, or seen in every one of the last 5 checks.
 const CONFIDENT = 0.7;
 const POSSIBLE = 0.55;
 
@@ -34,6 +34,7 @@ export function cameraErrorMessage(error) {
   if (name === 'NotAllowedError' || name === 'SecurityError') return 'Camera or microphone permission was blocked. Click the camera icon in your browser’s address bar (or your phone’s site settings), allow both, then try again.';
   if (name === 'NotFoundError' || name === 'OverconstrainedError') return 'No camera or microphone was found on this device. Please use a laptop or phone with a camera.';
   if (name === 'NotReadableError') return 'Your camera is being used by another app (for example Zoom). Close it, then try again.';
+  if (/fetch|network|wasm|load|import/i.test(error?.message ?? '')) return 'The camera checker couldn’t download (it’s a one-time 11 MB download). Check your internet connection and try again.';
   return `The camera couldn’t start (${error?.message ?? 'unknown error'}). Please try again or use another device.`;
 }
 
@@ -78,6 +79,7 @@ export async function startMonitor({ video, onFlag, onStatus }) {
   let lastFaces = 0;
   const recentOne = []; // last 5 checks: was any possible face seen?
   const recentTwo = []; // last 4 checks: were two or more possible faces seen?
+  const recentConfident = []; // last 2 checks: was a confident face seen? (one confident blip is not enough)
   let faceStreak = 0; // consecutive checks with a face: one blip must not end a "no face" period
   const remember = (list, value, size) => { list.push(value); if (list.length > size) list.shift(); return list.filter(Boolean).length; };
   let stopped = false;
@@ -126,9 +128,10 @@ export async function startMonitor({ video, onFlag, onStatus }) {
       try {
         const scores = detector.detectForVideo(video, performance.now()).detections.map((d) => d.categories?.[0]?.score ?? 0);
         const possible = scores.filter((x) => x >= POSSIBLE).length;
-        const steadyOne = remember(recentOne, possible >= 1, 5) >= 4;
-        const steadyTwo = remember(recentTwo, possible >= 2, 4) >= 3;
-        lastFaces = steadyTwo ? possible : (scores.some((x) => x >= CONFIDENT) || steadyOne) ? 1 : 0;
+        const steadyOne = remember(recentOne, possible >= 1, 5) === 5;   // seen in every one of the last 5 checks
+        const steadyTwo = remember(recentTwo, possible >= 2, 4) === 4;   // two faces in every one of the last 4
+        const confidentTwice = remember(recentConfident, scores.some((x) => x >= CONFIDENT), 2) === 2;
+        lastFaces = steadyTwo ? possible : (confidentTwice || steadyOne) ? 1 : 0;
       } catch { /* a skipped frame is fine */ }
     } else lastFaces = 0;
     faceStreak = lastFaces > 0 ? faceStreak + 1 : 0;

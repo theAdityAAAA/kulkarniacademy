@@ -369,3 +369,6 @@
 .attention-icon{flex-shrink:0;color:var(--purple)}
 .attention-clear{display:flex;align-items:center;gap:8px;color:#24603c;font-weight:600}
 @media(max-width:640px){.attention-list li{flex-wrap:wrap}.attention-list li .btn{margin-left:29px}}
+
+/* Safety net */
+.safety-net{margin:40px auto}

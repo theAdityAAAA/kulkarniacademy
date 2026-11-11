@@ -24,6 +24,7 @@ export function newId() {
 export function friendlyError(message = '') {
   if (/jwt|expired|invalid claim|refresh token|not authenticated/i.test(message)) return 'Your sign-in has expired. Please refresh the page and sign in again.';
   if (/failed to fetch|network|load failed/i.test(message)) return 'No internet connection. Check your connection and try again.';
+  if (/foreign key|violates row-level security|JSON object requested|0 rows|not found\.?$/i.test(message)) return 'This was changed or removed by your teacher. Please refresh the page.';
   return message;
 }
 

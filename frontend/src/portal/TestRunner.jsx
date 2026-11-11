@@ -96,6 +96,7 @@ export default function TestRunner({ test, onClose, bestBefore = -1 }) {
     setWrittenText('');
     setPhotos([]);
     submitting.current = false;
+    setError(''); // the answer went through: clear any connection message
     if (next?.status === 'in_progress') setDeadline(Date.now() + next.question.seconds_left * 1000);
     if (next?.status === 'finished') { leaveFullscreen(); monitorRef.current?.stop(); monitorRef.current = null; }
   }, []);
@@ -132,7 +133,7 @@ export default function TestRunner({ test, onClose, bestBefore = -1 }) {
     const { choice: c, number: n, text, photos: files } = answerRef.current;
     if (question.kind === 'written') {
       if (!timedOut && !text.trim() && !files.length) { setError('Type your answer or add a photo of your working.'); return; }
-      submitting.current = true; setBusy(true); setError('');
+      submitting.current = true; setBusy(true); if (!timedOut) setError(''); // automatic retries keep the message steady
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const paths = [];
@@ -147,7 +148,7 @@ export default function TestRunner({ test, onClose, bestBefore = -1 }) {
       if (Number.isNaN(parsed)) { if (!timedOut) { setError('Please type a number, like 12 or -3.5'); return; } parsed = null; }
     }
     if (!timedOut && question.kind === 'mcq' && c === null) { setError('Choose an answer first.'); return; }
-    submitting.current = true; setBusy(true); setError('');
+    submitting.current = true; setBusy(true); if (!timedOut) setError('');
     try {
       apply(await rpc('test_answer', { p_test: test.id, p_question: question.id, p_option: question.kind === 'mcq' ? c : null, p_number: parsed }));
     } catch (err) { setError(err.message); submitting.current = false; retryAt.current = Date.now() + 4000; } finally { setBusy(false); }
@@ -183,6 +184,23 @@ export default function TestRunner({ test, onClose, bestBefore = -1 }) {
 
   useEffect(() => () => { leaveFullscreen(); monitorRef.current?.stop(); }, []);
   useEffect(() => { runningRef.current = running; }, [running]);
+  // Phones auto-lock after ~30 s of no touching, which would count as leaving the test. Keep the screen on.
+  useEffect(() => {
+    if (!running || !navigator.wakeLock) return undefined;
+    let lock = null;
+    const grab = () => navigator.wakeLock.request('screen').then((l) => { lock = l; }).catch(() => {});
+    const again = () => { if (document.visibilityState === 'visible') grab(); };
+    grab();
+    document.addEventListener('visibilitychange', again);
+    return () => { document.removeEventListener('visibilitychange', again); lock?.release().catch(() => {}); };
+  }, [running]);
+  // Pressing Back or closing the tab mid-test asks first (the timer keeps running either way).
+  useEffect(() => {
+    if (!running) return undefined;
+    const warn = (e) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [running]);
   // Start downloading the face detector while the student reads the rules.
   useEffect(() => { if (monitoring) import('./monitor.js').then((m) => m.loadDetector()).catch(() => {}); }, [monitoring]);
 

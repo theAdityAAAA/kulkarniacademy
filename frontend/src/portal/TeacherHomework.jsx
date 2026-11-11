@@ -20,6 +20,7 @@ function AssignForm({ students, reload }) {
     if (!form.studentIds.length) { setError('Tick at least one student.'); return; }
     const file = fileInput.current.files[0];
     if (file) { const problem = checkFile(file); if (problem) { setError(problem); return; } }
+    if (form.due && new Date(form.due).getTime() < Date.now() && !confirm('The due date is in the past. Set this homework anyway?')) return;
     run(async () => {
       const rows = [];
       for (const studentId of form.studentIds) {
@@ -65,9 +66,11 @@ function MarkForm({ hw, reload, onDone }) {
   const [score, setScore] = useState(hw.score ?? '');
   const [outOf, setOutOf] = useState(hw.out_of ?? '');
   const [feedback, setFeedback] = useState(hw.feedback ?? '');
-  const { busy, error, run } = useAction();
+  const { busy, error, setError, run } = useAction();
   const submit = (event) => {
     event.preventDefault();
+    if (score !== '' && outOf === '') { setError('Enter what the score is out of.'); return; }
+    if (score !== '' && Number(score) > Number(outOf)) { setError(`The score can’t be more than ${outOf}.`); return; }
     run(async () => {
       must(await supabase.from('homework').update({
         score: score === '' ? null : Number(score),
