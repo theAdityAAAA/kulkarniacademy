@@ -51,3 +51,7 @@
 /* Student login link in the main navigation */
 .nav-login{display:inline-flex;align-items:center;gap:6px;padding-left:16px;border-left:1px solid #d9d0e7;color:var(--purple);font-weight:700}
 @media(max-width:1100px){.nav-login{padding-left:0;border-left:0;margin-top:6px}}
+
+/* Footer links */
+.footer-links a{color:var(--purple);font-weight:700}
+.footer-links a:hover{text-decoration:underline}

@@ -349,3 +349,23 @@
 .attempt-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .attempt-head .badge{margin-left:auto}
 .window-form{display:grid;gap:10px}
+
+/* ─── Install hint ─── */
+.install-btn{margin-top:4px}
+.install-tip{display:grid;justify-items:center;gap:4px;text-align:center}
+
+/* ─── Celebrations ─── */
+.celebrate{font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;color:var(--purple-dark)}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:70}
+.confetti span{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;opacity:.9;animation:confetti-fall linear forwards}
+@keyframes confetti-fall{to{top:110%;transform:translateX(40px) rotate(540deg);opacity:.2}}
+
+/* ─── Needs your attention ─── */
+.attention{display:grid;gap:10px}
+.attention-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.attention-list li{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:15px}
+.attention-list li>span{flex:1;min-width:0}
+.attention-list li .btn,.attention-list li .join-locked{flex-shrink:0}
+.attention-icon{flex-shrink:0;color:var(--purple)}
+.attention-clear{display:flex;align-items:center;gap:8px;color:#24603c;font-weight:600}
+@media(max-width:640px){.attention-list li{flex-wrap:wrap}.attention-list li .btn{margin-left:29px}}

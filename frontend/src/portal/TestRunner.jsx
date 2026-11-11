@@ -28,11 +28,25 @@ function Timer({ deadline, limit }) {
   </div>;
 }
 
-function Finished({ view, onClose }) {
+const CONFETTI_COLOURS = ['#7155ba', '#f2b84b', '#4cb782', '#e8735a', '#5aa9e6', '#c9bce6'];
+function Confetti() {
+  // 40 little pieces falling once; skipped entirely for people who prefer less motion.
+  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return null;
+  return <div className="confetti" aria-hidden="true">{Array.from({ length: 40 }, (_, i) => <span key={i} style={{
+    left: `${(i * 37) % 100}%`, background: CONFETTI_COLOURS[i % CONFETTI_COLOURS.length],
+    animationDelay: `${(i % 10) * 0.12}s`, animationDuration: `${2.4 + (i % 5) * 0.35}s`, transform: `rotate(${i * 29}deg)`,
+  }}/>)}</div>;
+}
+
+function Finished({ view, onClose, bestBefore = -1 }) {
   const pct = Number(view.max_points) ? Math.round((Number(view.points) / Number(view.max_points)) * 100) : 0;
+  const settled = !view.pending_marks && view.reason !== 'no_questions';
+  const celebrate = !settled ? null : pct === 100 ? 'Perfect score! Every answer right. 🎉' : bestBefore >= 0 && pct > bestBefore ? `Your best score yet, up from ${bestBefore}%! 🎉` : null;
   return <div className="runner-card runner-center">
+    {celebrate && <Confetti/>}
     <span className="runner-icon"><Trophy size={30}/></span>
     <h1>{view.reason === 'no_questions' ? 'No questions available' : 'Test finished'}</h1>
+    {celebrate && <p className="celebrate">{celebrate}</p>}
     {view.reason === 'exits' && <Notice>The test was submitted because you left it {view.exits} times.</Notice>}
     {view.reason === 'no_questions' ? <p className="muted">Your teacher hasn’t added questions for this test yet. Please let them know.</p> : <>
       {view.pending_marks > 0
@@ -45,7 +59,7 @@ function Finished({ view, onClose }) {
   </div>;
 }
 
-export default function TestRunner({ test, onClose }) {
+export default function TestRunner({ test, onClose, bestBefore = -1 }) {
   const [view, setView] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -193,7 +207,7 @@ export default function TestRunner({ test, onClose }) {
       </ul>
       {monitoring && <div className="monitor-setup">
         <strong><Video size={18}/> This test uses your camera and microphone</strong>
-        <p className="small">They check that you’re working on your own: your face stays in view, nobody else is with you, and there’s no talking. <strong>Nothing is recorded or saved</strong> (no photos, no video, no sound). Your teacher only sees short notes like “face not visible for 20 seconds at question 4”.</p>
+        <p className="small">They check that you’re working on your own: your face stays in view, nobody else is with you, and there’s no talking. <strong>Nothing is recorded or saved</strong> (no photos, no video, no sound). Your teacher only sees short notes like “face not visible for 20 seconds at question 4”. <a href="/privacy/" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
         <label className="inline-check"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}/>My parent or guardian knows this test uses the camera and microphone.</label>
         {!monitorStatus ? <button className="btn btn-ghost" onClick={startCamera} disabled={cameraBusy || !consent}><Camera size={17}/>{cameraBusy ? 'Starting camera…' : 'Turn on camera & microphone'}</button>
           : seenFace ? <p className="monitor-ok"><CheckCircle2 size={17}/> Camera ready. We can see you.</p>
@@ -238,7 +252,7 @@ export default function TestRunner({ test, onClose }) {
       </div>
     </div>}
 
-    {view?.status === 'finished' && <Finished view={view} onClose={close}/>}
+    {view?.status === 'finished' && <Finished view={view} onClose={close} bestBefore={bestBefore}/>}
 
     {monitoring && <div className={`selfview ${view ? 'small' : 'large'} ${monitorStatus ? '' : 'off'} ${view?.status === 'finished' ? 'gone' : ''}`} aria-label="Your camera">
       <video ref={videoRef} muted playsInline autoPlay/>

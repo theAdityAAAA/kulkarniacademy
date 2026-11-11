@@ -109,7 +109,12 @@ export default function Student({ profile }) {
     return () => window.removeEventListener('focus', onFocus);
   }, [load, runningTest]);
 
-  if (runningTest) return <TestRunner test={runningTest} onClose={() => { setRunningTest(null); load(); }}/>;
+  if (runningTest) {
+    // Best finished score before this test, so the result screen can celebrate a new personal best.
+    const earlier = (data?.tests ?? []).filter((t) => t.id !== runningTest.id).map((t) => firstOf(t.test_attempts))
+      .filter((a) => a?.finished_at && !a.pending_marks && Number(a.max_points)).map((a) => Math.round((Number(a.points) / Number(a.max_points)) * 100));
+    return <TestRunner test={runningTest} bestBefore={earlier.length ? Math.max(...earlier) : -1} onClose={() => { setRunningTest(null); load(); }}/>;
+  }
   if (!data) return error ? <Notice>{error}</Notice> : <Spinner/>;
 
   const active = data.classes.filter((c) => classState(c, now) !== 'ended');

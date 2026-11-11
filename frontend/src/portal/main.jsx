@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowLeft, KeyRound, LogIn, LogOut, MessageCircle, X } from 'lucide-react';
+import { ArrowLeft, Download, KeyRound, LogIn, LogOut, MessageCircle, X } from 'lucide-react';
 import { configured, supabase } from './supabase';
 import { Notice, Spinner, useAction } from './shared';
 const Teacher = lazy(() => import('./Teacher'));
@@ -37,9 +37,30 @@ function Login() {
         <button className="btn btn-primary btn-wide" disabled={busy}><LogIn size={18}/>{busy ? 'Signing in…' : 'Sign in'}</button>
       </form>
       <p className="login-help">Forgot your password? <a href={WHATSAPP} target="_blank" rel="noopener noreferrer"><MessageCircle size={15}/> Ask your teacher</a></p>
+      <InstallHint/>
     </div>
+    <a className="back-link small" href="/privacy/">Privacy policy</a>
     <a className="back-link" href="/"><ArrowLeft size={16}/> Back to the website</a>
   </main>;
+}
+
+/** "Add to home screen": a real install button where the browser offers one (Android/desktop Chrome),
+ *  and a short how-to on iPhone/iPad, where it is done from the Share menu. Hidden once installed. */
+let deferredInstall = null;
+if (typeof window !== 'undefined') window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; window.dispatchEvent(new Event('ka-install-ready')); });
+function InstallHint() {
+  const [canInstall, setCanInstall] = useState(Boolean(deferredInstall));
+  const [showIosTip, setShowIosTip] = useState(false);
+  useEffect(() => { const on = () => setCanInstall(true); window.addEventListener('ka-install-ready', on); return () => window.removeEventListener('ka-install-ready', on); }, []);
+  const standalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (standalone) return null;
+  if (canInstall) return <button className="btn btn-ghost btn-wide install-btn" onClick={async () => { deferredInstall?.prompt(); await deferredInstall?.userChoice; deferredInstall = null; setCanInstall(false); }}><Download size={17}/>Add the portal to your home screen</button>;
+  if (ios) return <div className="install-tip">
+    <button className="link-btn" onClick={() => setShowIosTip(!showIosTip)}><Download size={15}/>Add to your home screen</button>
+    {showIosTip && <p className="small muted">In Safari, tap the <strong>Share</strong> button (square with an arrow), then <strong>Add to Home Screen</strong>.</p>}
+  </div>;
+  return null;
 }
 
 function ChangePassword({ onClose }) {

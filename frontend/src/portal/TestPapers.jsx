@@ -422,8 +422,10 @@ function PaperView({ paper, questions, tests, students, reload, now, onBack, onO
 }
 
 // ─── All tests ─────────────────────────────────────────────────────────────
-export default function TestPapers({ papers, questions, tests, students, reload, now }) {
-  const [openId, setOpenId] = useState(null);
+export default function TestPapers({ papers, questions, tests, students, reload, now, focus }) {
+  const [openId, setOpenId] = useState(focus?.id ?? null);
+  // Opened from “Needs your attention”: jump straight to that test.
+  React.useEffect(() => { if (focus?.id) setOpenId(focus.id); }, [focus?.at]); // eslint-disable-line react-hooks/exhaustive-deps
   const paper = papers.find((p) => p.id === openId);
   const questionsOf = (id) => questions.filter((q) => q.paper_id === id && !q.archived).sort((a, b) => a.position - b.position || a.created_at.localeCompare(b.created_at));
   const testsOf = (id) => tests.filter((t) => t.paper_id === id);

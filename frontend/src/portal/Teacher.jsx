@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { CalendarDays, ClipboardCheck, RefreshCw, ShieldCheck, Users } from 'lucide-react';
 import TestPapers from './TestPapers';
+import Attention from './Attention';
 import { api, firstOf, must, supabase } from './supabase';
 import { JoinButton, Notice, Spinner, classState, useNow } from './shared';
 import { dateTimeLabel, placeName, relativeLabel, timeLabel } from './time';
@@ -68,6 +69,8 @@ export default function Teacher({ profile }) {
     return () => window.removeEventListener('focus', onFocus);
   }, [load]);
   const choose = (id) => { setTab(id); history.replaceState(null, '', `#${id}`); };
+  const [focusPaper, setFocusPaper] = useState(null);
+  const openTest = (paperId) => { setFocusPaper({ id: paperId, at: Date.now() }); choose('tests'); setTimeout(() => document.querySelector('.tabs')?.scrollIntoView({ behavior: 'smooth' }), 50); };
 
   if (!data) return error ? <Notice>{error}</Notice> : <Spinner/>;
 
@@ -100,6 +103,8 @@ export default function Teacher({ profile }) {
       <article className="stat"><button className="stat-button" onClick={() => choose('students')}><span className="stat-label">Students</span><strong className="stat-number">{data.students.length}</strong></button></article>
     </section>
 
+    {data.testsReady && <Attention data={data} now={now} goTo={(id) => { choose(id); setTimeout(() => document.querySelector('.tabs')?.scrollIntoView({ behavior: 'smooth' }), 50); }} openTest={openTest}/>}
+
     <nav className="tabs" role="tablist" aria-label="Dashboard sections">
       {tabs.map(({ id, label, icon: Icon }) => <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'tab active' : 'tab'} onClick={() => choose(id)}><Icon size={17}/>{label}{id === 'homework' && toMark > 0 && <span className="tab-count">{toMark}</span>}{id === 'tests' && testsToMark > 0 && <span className="tab-count">{testsToMark}</span>}</button>)}
     </nav>
@@ -108,7 +113,7 @@ export default function Teacher({ profile }) {
       {tab === 'classes' && <TeacherClasses students={data.students} classes={data.classes} reload={load} now={now}/>}
       {tab === 'homework' && <TeacherHomework students={data.students} homework={data.homework} reload={load}/>}
       {tab === 'tests' && !data.testsReady && <Notice>Tests need a database update. In Supabase, open SQL Editor, paste the file <code>supabase/004_test_papers.sql</code>, click Run, then press Refresh here.</Notice>}
-      {tab === 'tests' && data.testsReady && <TestPapers papers={data.papers} questions={data.questions} tests={data.tests} students={data.students} reload={load} now={now}/>}
+      {tab === 'tests' && data.testsReady && <TestPapers papers={data.papers} questions={data.questions} tests={data.tests} students={data.students} reload={load} now={now} focus={focusPaper}/>}
       {tab === 'students' && <TeacherStudents students={data.students} classes={data.classes} homework={data.homework} tests={data.tests} reload={load} now={now}/>}
     </div>
   </div>;
