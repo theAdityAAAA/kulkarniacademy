@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import { ArrowLeft, Download, KeyRound, LogIn, LogOut, MessageCircle, X } from 'lucide-react';
 import { configured, friendlyError, supabase } from './supabase';
 import { Notice, Spinner, useAction } from './shared';
@@ -156,4 +157,4 @@ function NotConfigured() {
   return <main className="login-page"><div className="login-card"><Brand/><h1>Portal not connected</h1><p className="muted">Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> to <code>frontend/.env</code>, then restart <code>npm run dev</code>.</p></div></main>;
 }
 
-createRoot(document.getElementById('root')).render(configured ? <App/> : <NotConfigured/>);
+createRoot(document.getElementById('root')).render(<>{configured ? <App/> : <NotConfigured/>}<Analytics /></>);
