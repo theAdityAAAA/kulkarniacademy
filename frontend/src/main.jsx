@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import { ArrowUpRight, ArrowRight, BookOpen, Check, ChevronDown, Globe2, Menu, X, MessageCircle, Sparkles, Clock3, Heart, Lightbulb, Pencil, Video, Mic, Monitor, GraduationCap, MoveUpRight, Mail, LogIn } from 'lucide-react';
 import './styles.css';
 import Subjects from './Subjects';
@@ -50,4 +51,4 @@ function App(){
  <dialog ref={dialog} className="trial-dialog" onCancel={()=>setModal(false)} onClick={e=>{if(e.target===dialog.current)setModal(false)}}><button className="dialog-close" aria-label="Close trial enquiry" onClick={()=>setModal(false)}><X/></button><span className="icon-box lilac"><Sparkles/></span><span className="eyebrow">A LITTLE HELLO. A GREAT START.</span><h2>Find your spark.</h2><p>Tell us a little about yourself. We’ll open WhatsApp (or email) with your enquiry ready for you to send.</p><form onSubmit={submitTrial}><label>Your name<input name="name" autoComplete="name" placeholder="Parent or student’s name" required maxLength={80}/></label><div className="form-row"><label>Year / grade<input name="grade" placeholder="e.g. Year 7" required maxLength={60}/></label><label>City / time zone<input name="city" placeholder="e.g. London, UK" required maxLength={100}/></label></div><label>School board / curriculum <span className="optional-label">(optional)</span><input name="board" placeholder="Your national or international board" maxLength={100}/></label><label>What would you like help with?<textarea name="subject" placeholder="Share the subject, curriculum, or a learning goal…" required maxLength={600} rows={3}/></label><button className="button primary" type="submit"><MessageCircle size={19}/> Continue on WhatsApp <ArrowUpRight size={18}/></button><button className="email-option" type="button" onClick={emailTrial}><Mail size={18}/> No WhatsApp? Send by email instead</button><small>Your request isn’t a confirmed booking. We’ll agree on a time together. These details are passed to WhatsApp or your email app only when you continue.</small></form><a className="direct-contact" href="tel:+919373438129">Prefer a call? +91 93734 38129</a><a className="direct-contact" href={mailto()}>Or email {email}</a></dialog>
  </>;
 }
-createRoot(document.getElementById('root')).render(<App/>);
+createRoot(document.getElementById('root')).render(<><App/><Analytics /></>);
