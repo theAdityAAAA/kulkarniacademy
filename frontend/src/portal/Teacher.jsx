@@ -2,13 +2,14 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Filter, HardDrive, KeyRound, LayoutDashboard, LibraryBig, LogOut, RefreshCw, Search, Settings, UserPlus, Users } from 'lucide-react';
 import TestPapers from './TestPapers';
 import Attention from './Attention';
-import StudentWorkspace, { avatarTone, initials } from './StudentWorkspace';
+import StudentWorkspace from './StudentWorkspace';
+import { avatarTone, initials } from './workspaceParts';
 import { api, firstOf, must, supabase } from './supabase';
 import { Empty, JoinButton, Notice, Spinner, classState, useNow } from './shared';
 import { dateTimeLabel, placeName, relativeLabel, timeLabel } from './time';
 import TeacherClasses from './TeacherClasses';
 import { AddStudent, StorageCleanup } from './TeacherStudents';
-import './teacher.css';
+import './app-layout.css';
 
 // Layout: a dark rail on the left (sections), a student list, and one workspace per student.
 const RAIL = [

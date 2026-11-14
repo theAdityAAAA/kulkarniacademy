@@ -99,12 +99,6 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 .portal-brand small{display:block;font-family:'DM Sans',sans-serif;font-size:9px;letter-spacing:3.6px;font-weight:600;color:var(--muted)}
 .portal-logo{position:relative;display:block;width:52px;aspect-ratio:1.4;overflow:hidden;mix-blend-mode:multiply}
 .portal-logo img{position:absolute;width:142.857%;height:auto;left:-21.429%;top:-135.8%}
-.portal-header{position:sticky;top:0;z-index:10;background:#f8f7f3f0;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.portal-header-inner{max-width:1200px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.portal-user{display:flex;align-items:center;gap:10px}
-.portal-user-name{display:grid;text-align:right;font-weight:700;font-size:15px;line-height:1.25}
-.portal-user-name small{font-weight:500;color:var(--muted);font-size:13px}
-.portal-main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
 .stack-lg{display:grid;gap:22px}
 .welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
 .welcome h1{font-size:32px;margin-top:4px}
@@ -214,9 +208,6 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
   .stat-feature{grid-column:1/-1}
 }
 @media(max-width:640px){
-  .portal-header-inner{padding:10px 16px}
-  .portal-main{padding:20px 16px 48px}
-  .portal-user-name{display:none}
   .portal-brand{font-size:17px}
   .portal-logo{width:44px}
   .welcome h1{font-size:26px}

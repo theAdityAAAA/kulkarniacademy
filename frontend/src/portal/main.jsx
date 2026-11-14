@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowLeft, Download, KeyRound, LogIn, LogOut, MessageCircle, X } from 'lucide-react';
+import { ArrowLeft, Download, LogIn, LogOut, MessageCircle, X } from 'lucide-react';
 import { configured, friendlyError, supabase } from './supabase';
 import { Notice, Spinner, useAction } from './shared';
 const Teacher = lazy(() => import('./Teacher'));
@@ -93,29 +93,11 @@ function ChangePassword({ onClose }) {
   </dialog>;
 }
 
-function Shell({ profile, children }) {
+/** Teacher and student both get a full-screen app layout (rail + pages); the password dialog lives here. */
+function AppFrame({ children }) {
   const [changing, setChanging] = useState(false);
   return <>
-    <header className="portal-header">
-      <div className="portal-header-inner">
-        <Brand/>
-        <div className="portal-user">
-          <span className="portal-user-name">{profile.full_name}<small>{profile.role === 'teacher' ? 'Teacher' : 'Student'}</small></span>
-          <button className="icon-btn" onClick={() => setChanging(true)} aria-label="Change password" title="Change password"><KeyRound size={19}/></button>
-          <button className="btn btn-ghost btn-small" onClick={() => supabase.auth.signOut()}><LogOut size={16}/>Sign out</button>
-        </div>
-      </div>
-    </header>
-    <main className="portal-main">{children}</main>
-    {changing && <ChangePassword onClose={() => setChanging(false)}/>}
-  </>;
-}
-
-/** The teacher gets a full-screen app layout (rail + student list + workspace) instead of the student header. */
-function TeacherApp({ profile }) {
-  const [changing, setChanging] = useState(false);
-  return <>
-    <SafetyNet><Suspense fallback={<Spinner/>}><Teacher profile={profile} onChangePassword={() => setChanging(true)}/></Suspense></SafetyNet>
+    <SafetyNet><Suspense fallback={<Spinner/>}>{children(() => setChanging(true))}</Suspense></SafetyNet>
     {changing && <ChangePassword onClose={() => setChanging(false)}/>}
   </>;
 }
@@ -143,8 +125,8 @@ function App() {
   if (!profile) {
     return <main className="login-page"><div className="login-card"><Brand/><h1>Almost there.</h1><p className="muted">Your login works, but your student account hasn’t been set up yet. Please message your teacher.</p><button className="btn btn-ghost btn-wide" onClick={() => supabase.auth.signOut()}><LogOut size={16}/>Sign out</button></div></main>;
   }
-  if (profile.role === 'teacher') return <TeacherApp profile={profile}/>;
-  return <Shell profile={profile}><SafetyNet><Suspense fallback={<Spinner/>}><Student profile={profile} onProfileChange={(changes) => setProfile((p) => ({ ...p, ...changes }))}/></Suspense></SafetyNet></Shell>;
+  if (profile.role === 'teacher') return <AppFrame>{(changePassword) => <Teacher profile={profile} onChangePassword={changePassword}/>}</AppFrame>;
+  return <AppFrame>{(changePassword) => <Student profile={profile} onChangePassword={changePassword} onProfileChange={(changes) => setProfile((p) => ({ ...p, ...changes }))}/>}</AppFrame>;
 }
 
 /** If anything unexpected goes wrong while drawing a screen, show a friendly card instead of a blank page. */

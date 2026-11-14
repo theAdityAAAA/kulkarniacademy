@@ -291,7 +291,8 @@
   body.printing-report *{visibility:hidden}
   body.printing-report .report-dialog,body.printing-report .report-dialog *{visibility:visible}
   body.printing-report .report-dialog{position:absolute;inset:0 auto auto 0;margin:0;width:100%;max-width:none;max-height:none;box-shadow:none;border-radius:0;overflow:visible}
-  body.printing-report .portal-header{display:none}
+  body.printing-report .t-app,body.printing-report .t-main,body.printing-report .t-workspace{display:block;height:auto;overflow:visible}
+  body.printing-report .t-rail{display:none}
   body.printing-report .report-dialog::backdrop{display:none}
   .no-print{display:none!important}
   .report-note-print{display:block}
