@@ -273,3 +273,4 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 .join-group{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
 .join-backup{font-size:13px;font-weight:600;color:var(--purple-dark);text-decoration:underline;text-underline-offset:3px}
 .badge.attendance{white-space:normal}
+.class-time span.class-time-big{font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:var(--ink)}

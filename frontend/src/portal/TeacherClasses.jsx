@@ -26,6 +26,17 @@ function whatsappText(student, start, minutes, link, moved) {
     : `Hi ${first(student.full_name)}! Your next class is on ${when}, ${minutes} minutes.\n${join}`;
 }
 
+const MAX_DAYS_AHEAD = 366;
+/** Problem with a class start time, or null if it's fine. Shows the time in both zones so it's clear. */
+function startProblem(start, student) {
+  if (!start || Number.isNaN(start.getTime())) return 'Choose a day and type a time.';
+  const both = `${dateTimeLabel(start)} your time${student && student.timezone !== localZone ? ` (${dateTimeLabel(start, student.timezone)} for ${first(student.full_name)} in ${placeName(student.timezone)})` : ''}`;
+  if (start.getTime() < Date.now() - 5 * 60000) return `That time has already passed: ${both}. Pick a time from now onwards.`;
+  if (start.getTime() > Date.now() + MAX_DAYS_AHEAD * 86400000) return `That date is more than a year away: ${both}. Check the year.`;
+  return null;
+}
+const dateLimits = (zone) => { const today = todayIn(zone); return { min: today, max: addDays(`${today}T00:00`, MAX_DAYS_AHEAD).slice(0, 10) }; };
+
 /** An optional backup link: '' → null; otherwise it must be a full https:// address. */
 function backupLink(value) {
   const text = value.trim();
@@ -42,7 +53,7 @@ function WhenPicker({ student, value, onChange }) {
   return <div className="when">
     <div className="day-chips" role="group" aria-label="Day">
       {days.map((d, i) => <button type="button" key={d} className={value.date === d ? 'chip active' : 'chip'} aria-pressed={value.date === d} onClick={() => onChange({ ...value, date: d })}>{dayChip(d, i)}</button>)}
-      <label className="chip chip-date"><span>Other date</span><input type="date" value={days.includes(value.date) ? '' : value.date} onChange={(e) => onChange({ ...value, date: e.target.value })} aria-label="Pick another date"/></label>
+      <label className="chip chip-date"><span>Other date</span><input type="date" {...dateLimits(zone)} value={days.includes(value.date) ? '' : value.date} onChange={(e) => onChange({ ...value, date: e.target.value })} aria-label="Pick another date"/></label>
     </div>
     <div className="when-row">
       <label>Time<input type="time" value={value.time} onChange={(e) => onChange({ ...value, time: e.target.value })} required/></label>
@@ -90,7 +101,8 @@ export function ScheduleForm({ students, classes, reload, fixedStudent = null })
       student_id: student.id, subject: subject.trim(), topic: topic.trim() || null, duration_minutes: Number(minutes), meeting_url: backup.url,
       starts_at: zonedToDate(addDays(`${when.date}T${when.time}`, 7 * i), zone).toISOString(),
     }));
-    if (new Date(rows[0].starts_at).getTime() < Date.now() - 5 * 60000 && !confirm('That time is in the past. Schedule it anyway?')) return;
+    const problem = startProblem(new Date(rows[0].starts_at), student);
+    if (problem) { setError(problem); return; }
     run(async () => {
       must(await supabase.from('classes').insert(rows));
       if (saveLink && backup.url && backup.url !== student.meeting_url) must(await supabase.from('profiles').update({ meeting_url: backup.url }).eq('id', student.id));
@@ -150,7 +162,8 @@ function RescheduleForm({ cls, student, onDone, reload }) {
     const zone = when.zone === 'student' && student ? student.timezone : localZone;
     const newStart = zonedToDate(`${when.date}T${when.time}`, zone);
     const moved = newStart.getTime() !== start.getTime();
-    if (moved && newStart.getTime() < Date.now() - 5 * 60000 && !confirm('That time is in the past. Move the class there anyway?')) return;
+    const problem = moved ? startProblem(newStart, student) : null;
+    if (problem) { setError(problem); return; }
     run(async () => {
       must(await supabase.from('classes').update({
         starts_at: newStart.toISOString(), duration_minutes: Number(minutes), meeting_url: backup.url, topic: topic.trim() || null, status: 'scheduled',

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowRight, BookMarked, BookOpenCheck, CalendarDays, CheckCircle2, ClipboardList, KeyRound, LayoutDashboard, LineChart, LogOut, PlayCircle, RefreshCw, RotateCcw, ShieldCheck, Trophy, Upload } from 'lucide-react';
+import { ArrowRight, BookMarked, BookOpenCheck, CalendarDays, CalendarPlus, CheckCircle2, ClipboardList, KeyRound, LayoutDashboard, LineChart, LogOut, PlayCircle, RefreshCw, RotateCcw, ShieldCheck, Trophy, Upload } from 'lucide-react';
 import Practice from './Practice';
 import ProgressChart, { progressPoints } from './ProgressChart';
 import StudentTests from './StudentTests';
@@ -8,7 +8,7 @@ import { MyBoard, MySyllabus } from './Syllabus';
 import { Goals, SectionHead, avatarTone, first, greeting, initials, pct, subjectTone } from './workspaceParts';
 import { ACCEPTED_FILES, checkFile, firstOf, must, supabase, uploadFile } from './supabase';
 import { Empty, FileLink, JoinButton, Notice, Spinner, classState, platformName, useAction, useNow } from './shared';
-import { dateTimeLabel, dayLabel, localZone, placeName, relativeLabel, timeLabel } from './time';
+import { dateTimeLabel, dayKey, dayLabel, localZone, placeName, relativeLabel, timeLabel } from './time';
 import './app-layout.css';
 
 // The student's own app: a rail (bottom bar on phones) with Home · Homework · Tests · Practice · Progress · Me.
@@ -66,9 +66,45 @@ function HomeworkCard({ hw, userId, reload, now, highlight = false }) {
   </li>;
 }
 
+// ─── Classes ──────────────────────────────────────────────────────────────
+const icsText = (value) => String(value ?? '').replace(/\\/g, '\\\\').replace(/([,;])/g, '\\$1').replace(/\r?\n/g, '\\n');
+const icsTime = (date) => new Date(date).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+/** Downloads a calendar file for a class (opens "Add to calendar" on phones), with a reminder 10 minutes before. */
+function addToCalendar(cls) {
+  const start = new Date(cls.starts_at);
+  const end = new Date(start.getTime() + cls.duration_minutes * 60000);
+  const portal = `${location.origin}/portal/`;
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Kulkarni Academy//Student portal//EN', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+    `UID:${cls.id}@kulkarni-academy`, `DTSTAMP:${icsTime(new Date())}`, `DTSTART:${icsTime(start)}`, `DTEND:${icsTime(end)}`,
+    `SUMMARY:${icsText(`${cls.subject} class · Kulkarni Academy`)}`,
+    `DESCRIPTION:${icsText(`${cls.topic ? `${cls.topic}\n` : ''}Join from the student portal: ${portal}`)}`, `URL:${portal}`,
+    'BEGIN:VALARM', 'TRIGGER:-PT10M', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(`${cls.subject} class starts in 10 minutes`)}`, 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'];
+  const url = URL.createObjectURL(new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = `${cls.subject.replace(/[^\w-]+/g, '-')}-class-${start.toISOString().slice(0, 10)}.ics`;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+function ClassItem({ c, now, showDay = true }) {
+  const state = classState(c, now);
+  return <li className={`class-row state-${state}`}>
+    <div className="class-time">{showDay && <strong>{dayLabel(c.starts_at)}</strong>}<span className={showDay ? '' : 'class-time-big'}>{timeLabel(c.starts_at)}</span></div>
+    <div className="class-info"><strong>{c.subject}</strong>{c.topic && <span>{c.topic}</span>}
+      {c.rescheduled_from && <span className="badge badge-accent moved">Moved from {dateTimeLabel(c.rescheduled_from)}</span>}
+      <span className="muted small">{c.duration_minutes} min · {platformName(c.meeting_url)}</span></div>
+    <div className="class-actions">
+      <JoinButton cls={c} now={now}/>
+      {c.status !== 'cancelled' && (state === 'later' || state === 'soon') && <button className="btn btn-ghost btn-small" onClick={() => addToCalendar(c)} title="Add this class to your phone or computer calendar, with a reminder 10 minutes before"><CalendarPlus size={15}/>Add to calendar</button>}
+    </div>
+  </li>;
+}
+
 // ─── Layout: a rail (bottom bar on phones) + one page per section ─────────
 const RAIL = [
   { id: 'home', label: 'Home', icon: LayoutDashboard },
+  { id: 'classes', label: 'Classes', icon: CalendarDays },
   { id: 'homework', label: 'Homework', icon: ClipboardList },
   { id: 'tests', label: 'Tests', icon: ShieldCheck },
   { id: 'practice', label: 'Practice', icon: RotateCcw },
@@ -158,7 +194,7 @@ export default function Student({ profile, onProfileChange = () => {}, onChangeP
     try {
       const since = new Date(Date.now() - 3 * 3600000).toISOString();
       const [classes, homework, tests] = await Promise.all([
-        supabase.from('classes').select('*').gte('starts_at', since).order('starts_at').limit(50).then(must),
+        supabase.from('classes').select('*').gte('starts_at', since).order('starts_at').limit(150).then(must),
         supabase.from('homework').select('*, submissions(*)').order('created_at', { ascending: false }).limit(200).then(must),
         supabase.from('tests').select('*, test_attempts(*)').order('opens_at', { ascending: false }).limit(100).then(({ data: rows, error: e }) => (e ? [] : rows)),
       ]);
@@ -213,7 +249,8 @@ export default function Student({ profile, onProfileChange = () => {}, onChangeP
     if (!data) return error ? <div className="t-page"><Notice>{error}</Notice></div> : <Spinner/>;
     const active = data.classes.filter((c) => classState(c, now) !== 'ended');
     const next = active.find((c) => c.status !== 'cancelled');
-    const later = active.filter((c) => c !== next).slice(0, 8);
+    const upcoming = active.filter((c) => c !== next);
+    const later = upcoming.slice(0, 4);
     const wins = data.tests.map((t) => ({ t, a: firstOf(t.test_attempts) })).filter(({ a }) => a?.finished_at && !a.pending_marks && pct(a) !== null)
       .sort((x, y) => y.a.finished_at.localeCompare(x.a.finished_at)).slice(0, 3);
     const openHomework = (id) => { const h = data.homework.find((x) => x.id === id); setHwTab(h?.marked_at ? 'marked' : h?.submission ? 'waiting' : 'todo'); setFocusHw(id); go('homework'); };
@@ -244,16 +281,31 @@ export default function Student({ profile, onProfileChange = () => {}, onChangeP
           <Goals student={profile} forStudent onOpen={() => go('progress')}/>
         </section>
         <section className="ws-section">
-          <SectionHead title="COMING UP" count={later.length}/>
+          <SectionHead title="COMING UP" count={upcoming.length}>{upcoming.length > 0 && <button className="link-btn" onClick={() => go('classes')}>See all classes</button>}</SectionHead>
           <p className="hint">Times shown in your time ({placeName(localZone)}).</p>
-          {later.length ? <ul className="class-list">{later.map((c) => <li key={c.id} className={`class-row state-${classState(c, now)}`}>
-            <div className="class-time"><strong>{dayLabel(c.starts_at)}</strong><span>{timeLabel(c.starts_at)}</span></div>
-            <div className="class-info"><strong>{c.subject}</strong>{c.topic && <span>{c.topic}</span>}{c.rescheduled_from && <span className="badge badge-accent moved">Moved from {dateTimeLabel(c.rescheduled_from)}</span>}<span className="muted small">{c.duration_minutes} min · {platformName(c.meeting_url)}</span></div>
-            <div className="class-actions"><JoinButton cls={c} now={now}/></div>
-          </li>)}</ul> : <p className="muted small ws-quiet"><CalendarDays size={16}/>Nothing else booked yet.</p>}
+          {later.length ? <ul className="class-list">{later.map((c) => <ClassItem key={c.id} c={c} now={now}/>)}</ul> : <p className="muted small ws-quiet"><CalendarDays size={16}/>Nothing else booked yet.</p>}
         </section>
       </div>
     </div>;
+
+    if (view === 'classes') {
+      const today = dayKey(new Date(now)), tomorrow = dayKey(new Date(now + 86400000));
+      const groups = [];
+      for (const c of active) {
+        const key = dayKey(c.starts_at);
+        if (groups.at(-1)?.key !== key) groups.push({ key, label: key === today ? `Today · ${dayLabel(c.starts_at)}` : key === tomorrow ? `Tomorrow · ${dayLabel(c.starts_at)}` : dayLabel(c.starts_at), items: [] });
+        groups.at(-1).items.push(c);
+      }
+      const booked = active.filter((c) => c.status !== 'cancelled').length;
+      return <div className="t-page s-page">
+        <div className="s-page-head"><h1 className="t-page-title">My classes</h1>{refresh}</div>
+        <section className="card">
+          <p className="hint">{booked ? `${booked} class${booked === 1 ? '' : 'es'} booked.` : 'No classes booked yet.'} Times shown in your time ({placeName(localZone)}). Tap <strong>Add to calendar</strong> to get a reminder on your phone.</p>
+          {groups.length ? groups.map((g) => <div key={g.key} className="day-group"><h3>{g.label}</h3><ul className="class-list">{g.items.map((c) => <ClassItem key={c.id} c={c} now={now} showDay={false}/>)}</ul></div>)
+            : <Empty icon={CalendarDays} title="No classes booked yet">Your teacher will add your classes here.</Empty>}
+        </section>
+      </div>;
+    }
 
     if (view === 'homework') return <div className="t-page s-page">
       <div className="s-page-head"><h1 className="t-page-title">Homework</h1>{refresh}</div>
