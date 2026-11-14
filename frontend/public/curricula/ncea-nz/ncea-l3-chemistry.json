@@ -1,0 +1,69 @@
+{
+  "id": "ncea-l3-chemistry",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Chemistry",
+  "code": "NCEA Level 3",
+  "title": "NCEA Level 3 Chemistry",
+  "grades": [
+    "Year 13"
+  ],
+  "exam_years": "2026 (NCEA Level 3)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=chemistry&view=all&level=03",
+  "topics": [
+    {
+      "code": "AS91390",
+      "title": "Demonstrate understanding of thermochemical principles and the properties of particles and substances",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91391",
+      "title": "Demonstrate understanding of the properties of organic compounds",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91392",
+      "title": "Demonstrate understanding of equilibrium principles in aqueous systems",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91387",
+      "title": "Carry out an investigation in chemistry involving quantitative analysis",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91388",
+      "title": "Demonstrate understanding of spectroscopic data in chemistry",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91389",
+      "title": "Demonstrate understanding of chemical processes in the world around us",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91393",
+      "title": "Demonstrate understanding of oxidation-reduction processes",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

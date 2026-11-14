@@ -1,0 +1,62 @@
+{
+  "id": "ncea-l3-earth-and-space-science",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Earth and Space Science",
+  "code": "NCEA Level 3",
+  "title": "NCEA Level 3 Earth and Space Science",
+  "grades": [
+    "Year 13"
+  ],
+  "exam_years": "2026 (NCEA Level 3)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Earth+and+Space+Science&view=all&level=03",
+  "topics": [
+    {
+      "code": "AS91413",
+      "title": "Demonstrate understanding of processes in the ocean system",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91414",
+      "title": "Demonstrate understanding of processes in the atmosphere system",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91410",
+      "title": "Carry out an independent practical Earth and Space Science investigation",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91411",
+      "title": "Investigate a socio-scientific issue in an Earth and Space Science context",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91412",
+      "title": "Investigate the evidence related to dating geological event(s)",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91415",
+      "title": "Investigate an aspect of astronomy",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

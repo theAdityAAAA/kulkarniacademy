@@ -1,0 +1,118 @@
+{
+  "id": "ncea-l2-mathematics-and-statistics",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Mathematics",
+  "code": "NCEA Level 2",
+  "title": "NCEA Level 2 Mathematics and Statistics",
+  "grades": [
+    "Year 12"
+  ],
+  "exam_years": "2026 (NCEA Level 2)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Mathematics&view=all&level=02",
+  "topics": [
+    {
+      "code": "AS91261",
+      "title": "Apply algebraic methods in solving problems",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91262",
+      "title": "Apply calculus methods in solving problems",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91267",
+      "title": "Apply probability methods in solving problems",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91256",
+      "title": "Apply co-ordinate geometry methods in solving problems",
+      "tier": "Internal · 2 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91257",
+      "title": "Apply graphical methods in solving problems",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91258",
+      "title": "Apply sequences and series in solving problems",
+      "tier": "Internal · 2 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91259",
+      "title": "Apply trigonometric relationships in solving problems",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91260",
+      "title": "Apply network methods in solving problems",
+      "tier": "Internal · 2 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91263",
+      "title": "Design a questionnaire",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91264",
+      "title": "Use statistical methods to make an inference",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91265",
+      "title": "Conduct an experiment to investigate a situation using statistical methods",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91266",
+      "title": "Evaluate a statistically based report",
+      "tier": "Internal · 2 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91268",
+      "title": "Investigate a situation involving elements of chance using a simulation",
+      "tier": "Internal · 2 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91269",
+      "title": "Apply systems of equations in solving problems",
+      "tier": "Internal · 2 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

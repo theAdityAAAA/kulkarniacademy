@@ -1,0 +1,69 @@
+{
+  "id": "ncea-l2-earth-and-space-science",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Earth and Space Science",
+  "code": "NCEA Level 2",
+  "title": "NCEA Level 2 Earth and Space Science",
+  "grades": [
+    "Year 12"
+  ],
+  "exam_years": "2026 (NCEA Level 2)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Earth+and+Space+Science&view=all&level=02",
+  "topics": [
+    {
+      "code": "AS91191",
+      "title": "Demonstrate understanding of the causes of extreme Earth events in New Zealand",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91192",
+      "title": "Demonstrate understanding of stars and planetary systems",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91193",
+      "title": "Demonstrate understanding of physical principles related to the Earth System",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91187",
+      "title": "Carry out a practical Earth and Space Science investigation",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91188",
+      "title": "Examine an Earth and Space Science issue and the validity of the information communicated to the public",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91189",
+      "title": "Investigate geological processes in a New Zealand locality",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91190",
+      "title": "Investigate how organisms survive in an extreme environment",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

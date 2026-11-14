@@ -12,6 +12,7 @@ Every file has a `source` link to the official specification it came from. Topic
 | Cambridge AS & A Level | 9709 Mathematics | 2026–2027 |
 | US Common Core | Mathematics Grade 6, 7, 8 and High School (domains → clusters) | 2010 standards |
 | Singapore O-Level | 4052 Maths, 4049 Additional Maths, 6091, 6092, 6093 | 2026 (from 2027 it's called the SEC, same codes) |
+| NCEA (New Zealand) | Level 1: Mathematics and Statistics, Science, Chemistry and Biology, Physics/Earth and Space Science. Levels 2 and 3: Mathematics and Statistics (Level 3 grouped as Calculus and Statistics), Physics, Chemistry, Biology, Earth and Space Science. Each achievement standard is one topic, with its credits and internal/external label | standards current for 2026, from NZQA's standards lists |
 
 Not included yet:
 - **IB Diploma and MYP.** IB's website blocks automated downloads. To add them, save the official subject guides from a browser. MYP has no fixed topic list, because each school writes its own units.

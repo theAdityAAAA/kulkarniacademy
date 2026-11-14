@@ -1,0 +1,48 @@
+{
+  "id": "ncea-l1-mathematics-and-statistics",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Mathematics",
+  "code": "NCEA Level 1",
+  "title": "NCEA Level 1 Mathematics and Statistics",
+  "grades": [
+    "Year 11"
+  ],
+  "exam_years": "2026 (NCEA Level 1)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Mathematics&view=all&level=01",
+  "topics": [
+    {
+      "code": "AS91946",
+      "title": "Interpret and apply mathematical and statistical information in context",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91947",
+      "title": "Demonstrate mathematical reasoning",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91944",
+      "title": "Explore data using a statistical enquiry process",
+      "tier": "Internal · 5 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91945",
+      "title": "Use mathematical methods to explore problems that relate to life in Aotearoa New Zealand or the Pacific",
+      "tier": "Internal · 5 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

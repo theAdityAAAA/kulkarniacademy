@@ -1,0 +1,76 @@
+{
+  "id": "ncea-l2-biology",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Biology",
+  "code": "NCEA Level 2",
+  "title": "NCEA Level 2 Biology",
+  "grades": [
+    "Year 12"
+  ],
+  "exam_years": "2026 (NCEA Level 2)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Biology&view=all&level=02",
+  "topics": [
+    {
+      "code": "AS91156",
+      "title": "Demonstrate understanding of life processes at the cellular level",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91157",
+      "title": "Demonstrate understanding of genetic variation and change",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91159",
+      "title": "Demonstrate understanding of gene expression",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91153",
+      "title": "Carry out a practical investigation in a biology context, with supervision",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91154",
+      "title": "Analyse the biological validity of information presented to the public",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91155",
+      "title": "Demonstrate understanding of adaptation of plants or animals to their way of life",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91158",
+      "title": "Investigate a pattern in an ecological community, with supervision",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91160",
+      "title": "Investigate biological material at the microscopic level",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

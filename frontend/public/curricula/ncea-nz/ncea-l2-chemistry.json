@@ -1,0 +1,69 @@
+{
+  "id": "ncea-l2-chemistry",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Chemistry",
+  "code": "NCEA Level 2",
+  "title": "NCEA Level 2 Chemistry",
+  "grades": [
+    "Year 12"
+  ],
+  "exam_years": "2026 (NCEA Level 2)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=chemistry&view=all&level=02",
+  "topics": [
+    {
+      "code": "AS91164",
+      "title": "Demonstrate understanding of bonding, structure, properties and energy changes",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91165",
+      "title": "Demonstrate understanding of the properties of selected organic compounds",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91166",
+      "title": "Demonstrate understanding of chemical reactivity",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91163",
+      "title": "Demonstrate understanding of the chemistry used in the development of a current technology",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91167",
+      "title": "Demonstrate understanding of oxidation-reduction",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91910",
+      "title": "Carry out a practical investigation into a substance present in a consumer product using quantitative analysis",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91911",
+      "title": "Carry out an investigation into chemical species present in a sample using qualitative analysis",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

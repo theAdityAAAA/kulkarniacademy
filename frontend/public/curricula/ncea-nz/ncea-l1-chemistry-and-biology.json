@@ -1,0 +1,48 @@
+{
+  "id": "ncea-l1-chemistry-and-biology",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Chemistry and Biology",
+  "code": "NCEA Level 1",
+  "title": "NCEA Level 1 Chemistry and Biology",
+  "grades": [
+    "Year 11"
+  ],
+  "exam_years": "2026 (NCEA Level 1)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=chemistry+and+biology&view=all&level=01",
+  "topics": [
+    {
+      "code": "AS92022",
+      "title": "Demonstrate understanding of genetic variation in relation to an identified characteristic",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS92023",
+      "title": "Demonstrate understanding of how the physical properties of materials inform their use",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS92020",
+      "title": "Demonstrate understanding of the relationship between a microorganism and the environment",
+      "tier": "Internal · 5 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS92021",
+      "title": "Demonstrate understanding of chemical reactions in context",
+      "tier": "Internal · 6 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

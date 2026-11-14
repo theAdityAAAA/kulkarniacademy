@@ -1,0 +1,62 @@
+{
+  "id": "ncea-l2-physics",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Physics",
+  "code": "NCEA Level 2",
+  "title": "NCEA Level 2 Physics",
+  "grades": [
+    "Year 12"
+  ],
+  "exam_years": "2026 (NCEA Level 2)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Physics&view=all&level=02",
+  "topics": [
+    {
+      "code": "AS91170",
+      "title": "Demonstrate understanding of waves",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91171",
+      "title": "Demonstrate understanding of mechanics",
+      "tier": "External · 6 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91173",
+      "title": "Demonstrate understanding of electricity and electromagnetism",
+      "tier": "External · 6 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91168",
+      "title": "Carry out a practical physics investigation that leads to a non-linear mathematical relationship",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91169",
+      "title": "Demonstrate understanding of physics relevant to a selected context",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91172",
+      "title": "Demonstrate understanding of atomic and nuclear physics",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

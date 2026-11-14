@@ -1,0 +1,125 @@
+{
+  "id": "ncea-l3-mathematics-and-statistics",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Mathematics",
+  "code": "NCEA Level 3",
+  "title": "NCEA Level 3 Mathematics and Statistics (Calculus · Statistics)",
+  "grades": [
+    "Year 13"
+  ],
+  "exam_years": "2026 (NCEA Level 3)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Mathematics&view=all&level=03",
+  "topics": [
+    {
+      "code": "AS91573",
+      "title": "Apply the geometry of conic sections in solving problems",
+      "tier": "Internal · 3 credits",
+      "group": "Calculus",
+      "subtopics": []
+    },
+    {
+      "code": "AS91575",
+      "title": "Apply trigonometric methods in solving problems",
+      "tier": "Internal · 4 credits",
+      "group": "Calculus",
+      "subtopics": []
+    },
+    {
+      "code": "AS91577",
+      "title": "Apply the algebra of complex numbers in solving problems",
+      "tier": "External · 5 credits",
+      "group": "Calculus",
+      "subtopics": []
+    },
+    {
+      "code": "AS91578",
+      "title": "Apply differentiation methods in solving problems",
+      "tier": "External · 6 credits",
+      "group": "Calculus",
+      "subtopics": []
+    },
+    {
+      "code": "AS91579",
+      "title": "Apply integration methods in solving problems",
+      "tier": "External · 6 credits",
+      "group": "Calculus",
+      "subtopics": []
+    },
+    {
+      "code": "AS91587",
+      "title": "Apply systems of simultaneous equations in solving problems",
+      "tier": "Internal · 3 credits",
+      "group": "Calculus",
+      "subtopics": []
+    },
+    {
+      "code": "AS91580",
+      "title": "Investigate time series data",
+      "tier": "Internal · 4 credits",
+      "group": "Statistics",
+      "subtopics": []
+    },
+    {
+      "code": "AS91581",
+      "title": "Investigate bivariate measurement data",
+      "tier": "Internal · 4 credits",
+      "group": "Statistics",
+      "subtopics": []
+    },
+    {
+      "code": "AS91582",
+      "title": "Use statistical methods to make a formal inference",
+      "tier": "Internal · 4 credits",
+      "group": "Statistics",
+      "subtopics": []
+    },
+    {
+      "code": "AS91583",
+      "title": "Conduct an experiment to investigate a situation using experimental design principles",
+      "tier": "Internal · 4 credits",
+      "group": "Statistics",
+      "subtopics": []
+    },
+    {
+      "code": "AS91584",
+      "title": "Evaluate statistically based reports",
+      "tier": "External · 4 credits",
+      "group": "Statistics",
+      "subtopics": []
+    },
+    {
+      "code": "AS91585",
+      "title": "Apply probability concepts in solving problems",
+      "tier": "External · 4 credits",
+      "group": "Statistics",
+      "subtopics": []
+    },
+    {
+      "code": "AS91586",
+      "title": "Apply probability distributions in solving problems",
+      "tier": "External · 4 credits",
+      "group": "Statistics",
+      "subtopics": []
+    },
+    {
+      "code": "AS91574",
+      "title": "Apply linear programming methods in solving problems",
+      "tier": "Internal · 3 credits",
+      "group": "Other mathematics",
+      "subtopics": []
+    },
+    {
+      "code": "AS91576",
+      "title": "Use critical path analysis in solving problems",
+      "tier": "Internal · 2 credits",
+      "group": "Other mathematics",
+      "subtopics": []
+    }
+  ]
+}

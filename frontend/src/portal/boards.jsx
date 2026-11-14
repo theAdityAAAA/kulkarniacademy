@@ -15,6 +15,7 @@ export const BOARDS = [
   { board: 'Cambridge Lower Secondary', grades: ['Stage 7 (Year 7 / Grade 6)', 'Stage 8 (Year 8 / Grade 7)', 'Stage 9 (Year 9 / Grade 8)'] },
   { board: 'US Common Core', grades: ['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'] },
   { board: 'Singapore O-Level', grades: ['Secondary 1', 'Secondary 2', 'Secondary 3', 'Secondary 4'] },
+  { board: 'NCEA (New Zealand)', grades: ['Year 9', 'Year 10', 'Year 11 (NCEA Level 1)', 'Year 12 (NCEA Level 2)', 'Year 13 (NCEA Level 3)'] },
   { board: 'Other', grades: uk(5, 13) },
 ];
 

@@ -22,7 +22,7 @@ export async function loadSyllabus(id) {
   return entry ? getJson(entry.path) : null; // null: a syllabus that was removed from the portal later
 }
 
-const SUBJECT_ORDER = ['Mathematics', 'Additional Mathematics', 'Biology', 'Chemistry', 'Physics', 'Combined Science'];
+const SUBJECT_ORDER = ['Mathematics', 'Additional Mathematics', 'Science', 'Biology', 'Chemistry', 'Chemistry and Biology', 'Physics', 'Earth and Space Science', 'Combined Science'];
 const bySubject = (a, b) => (SUBJECT_ORDER.indexOf(a.subject) - SUBJECT_ORDER.indexOf(b.subject)) || a.title.localeCompare(b.title);
 
 /** Things that get ticked: sub-topics, or the topic itself when it has none. */

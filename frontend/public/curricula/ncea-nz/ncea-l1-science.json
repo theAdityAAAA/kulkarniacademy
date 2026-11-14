@@ -1,0 +1,48 @@
+{
+  "id": "ncea-l1-science",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Science",
+  "code": "NCEA Level 1",
+  "title": "NCEA Level 1 Science",
+  "grades": [
+    "Year 11"
+  ],
+  "exam_years": "2026 (NCEA Level 1)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Science&view=all&level=01",
+  "topics": [
+    {
+      "code": "AS91922",
+      "title": "Describe features of science that have contributed to the development of a science idea in a local context",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91923",
+      "title": "Demonstrate understanding of science-related claims in communicated information",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91920",
+      "title": "Demonstrate understanding of a science-informed response to a local issue",
+      "tier": "Internal · 5 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91921",
+      "title": "Demonstrate understanding of the use of a range of scientific investigative approaches in a context",
+      "tier": "Internal · 5 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

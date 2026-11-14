@@ -1,0 +1,69 @@
+{
+  "id": "ncea-l3-biology",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Biology",
+  "code": "NCEA Level 3",
+  "title": "NCEA Level 3 Biology",
+  "grades": [
+    "Year 13"
+  ],
+  "exam_years": "2026 (NCEA Level 3)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Biology&view=all&level=03",
+  "topics": [
+    {
+      "code": "AS91603",
+      "title": "Demonstrate understanding of the responses of plants and animals to their external environment",
+      "tier": "External · 5 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91605",
+      "title": "Demonstrate understanding of evolutionary processes leading to speciation",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91606",
+      "title": "Demonstrate understanding of trends in human evolution",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91601",
+      "title": "Carry out a practical investigation in a biological context, with guidance",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91602",
+      "title": "Integrate biological knowledge to develop an informed response to a socio-scientific issue",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91604",
+      "title": "Demonstrate understanding of how an animal maintains a stable internal environment",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91607",
+      "title": "Demonstrate understanding of human manipulations of genetic transfer and its biological implications",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}

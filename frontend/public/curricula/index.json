@@ -275,6 +275,160 @@
    "path": "singapore/sg-olevel-6091-2026.json",
    "topics": 20,
    "items": 20
+  },
+  {
+   "id": "ncea-l2-biology",
+   "board": "NCEA (New Zealand)",
+   "subject": "Biology",
+   "code": "NCEA Level 2",
+   "title": "NCEA Level 2 Biology",
+   "exam_years": "2026 (NCEA Level 2)",
+   "path": "ncea-nz/ncea-l2-biology.json",
+   "topics": 8,
+   "items": 8
+  },
+  {
+   "id": "ncea-l3-biology",
+   "board": "NCEA (New Zealand)",
+   "subject": "Biology",
+   "code": "NCEA Level 3",
+   "title": "NCEA Level 3 Biology",
+   "exam_years": "2026 (NCEA Level 3)",
+   "path": "ncea-nz/ncea-l3-biology.json",
+   "topics": 7,
+   "items": 7
+  },
+  {
+   "id": "ncea-l2-chemistry",
+   "board": "NCEA (New Zealand)",
+   "subject": "Chemistry",
+   "code": "NCEA Level 2",
+   "title": "NCEA Level 2 Chemistry",
+   "exam_years": "2026 (NCEA Level 2)",
+   "path": "ncea-nz/ncea-l2-chemistry.json",
+   "topics": 7,
+   "items": 7
+  },
+  {
+   "id": "ncea-l3-chemistry",
+   "board": "NCEA (New Zealand)",
+   "subject": "Chemistry",
+   "code": "NCEA Level 3",
+   "title": "NCEA Level 3 Chemistry",
+   "exam_years": "2026 (NCEA Level 3)",
+   "path": "ncea-nz/ncea-l3-chemistry.json",
+   "topics": 7,
+   "items": 7
+  },
+  {
+   "id": "ncea-l1-chemistry-and-biology",
+   "board": "NCEA (New Zealand)",
+   "subject": "Chemistry and Biology",
+   "code": "NCEA Level 1",
+   "title": "NCEA Level 1 Chemistry and Biology",
+   "exam_years": "2026 (NCEA Level 1)",
+   "path": "ncea-nz/ncea-l1-chemistry-and-biology.json",
+   "topics": 4,
+   "items": 4
+  },
+  {
+   "id": "ncea-l2-earth-and-space-science",
+   "board": "NCEA (New Zealand)",
+   "subject": "Earth and Space Science",
+   "code": "NCEA Level 2",
+   "title": "NCEA Level 2 Earth and Space Science",
+   "exam_years": "2026 (NCEA Level 2)",
+   "path": "ncea-nz/ncea-l2-earth-and-space-science.json",
+   "topics": 7,
+   "items": 7
+  },
+  {
+   "id": "ncea-l3-earth-and-space-science",
+   "board": "NCEA (New Zealand)",
+   "subject": "Earth and Space Science",
+   "code": "NCEA Level 3",
+   "title": "NCEA Level 3 Earth and Space Science",
+   "exam_years": "2026 (NCEA Level 3)",
+   "path": "ncea-nz/ncea-l3-earth-and-space-science.json",
+   "topics": 6,
+   "items": 6
+  },
+  {
+   "id": "ncea-l1-mathematics-and-statistics",
+   "board": "NCEA (New Zealand)",
+   "subject": "Mathematics",
+   "code": "NCEA Level 1",
+   "title": "NCEA Level 1 Mathematics and Statistics",
+   "exam_years": "2026 (NCEA Level 1)",
+   "path": "ncea-nz/ncea-l1-mathematics-and-statistics.json",
+   "topics": 4,
+   "items": 4
+  },
+  {
+   "id": "ncea-l2-mathematics-and-statistics",
+   "board": "NCEA (New Zealand)",
+   "subject": "Mathematics",
+   "code": "NCEA Level 2",
+   "title": "NCEA Level 2 Mathematics and Statistics",
+   "exam_years": "2026 (NCEA Level 2)",
+   "path": "ncea-nz/ncea-l2-mathematics-and-statistics.json",
+   "topics": 14,
+   "items": 14
+  },
+  {
+   "id": "ncea-l3-mathematics-and-statistics",
+   "board": "NCEA (New Zealand)",
+   "subject": "Mathematics",
+   "code": "NCEA Level 3",
+   "title": "NCEA Level 3 Mathematics and Statistics (Calculus · Statistics)",
+   "exam_years": "2026 (NCEA Level 3)",
+   "path": "ncea-nz/ncea-l3-mathematics-and-statistics.json",
+   "topics": 15,
+   "items": 15
+  },
+  {
+   "id": "ncea-l1-physics-earth-and-space-science",
+   "board": "NCEA (New Zealand)",
+   "subject": "Physics",
+   "code": "NCEA Level 1",
+   "title": "NCEA Level 1 Physics, Earth and Space Science",
+   "exam_years": "2026 (NCEA Level 1)",
+   "path": "ncea-nz/ncea-l1-physics-earth-and-space-science.json",
+   "topics": 4,
+   "items": 4
+  },
+  {
+   "id": "ncea-l2-physics",
+   "board": "NCEA (New Zealand)",
+   "subject": "Physics",
+   "code": "NCEA Level 2",
+   "title": "NCEA Level 2 Physics",
+   "exam_years": "2026 (NCEA Level 2)",
+   "path": "ncea-nz/ncea-l2-physics.json",
+   "topics": 6,
+   "items": 6
+  },
+  {
+   "id": "ncea-l3-physics",
+   "board": "NCEA (New Zealand)",
+   "subject": "Physics",
+   "code": "NCEA Level 3",
+   "title": "NCEA Level 3 Physics",
+   "exam_years": "2026 (NCEA Level 3)",
+   "path": "ncea-nz/ncea-l3-physics.json",
+   "topics": 7,
+   "items": 7
+  },
+  {
+   "id": "ncea-l1-science",
+   "board": "NCEA (New Zealand)",
+   "subject": "Science",
+   "code": "NCEA Level 1",
+   "title": "NCEA Level 1 Science",
+   "exam_years": "2026 (NCEA Level 1)",
+   "path": "ncea-nz/ncea-l1-science.json",
+   "topics": 4,
+   "items": 4
   }
  ]
 }

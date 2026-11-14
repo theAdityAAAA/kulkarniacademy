@@ -1,0 +1,69 @@
+{
+  "id": "ncea-l3-physics",
+  "board": "NCEA (New Zealand)",
+  "country": "New Zealand",
+  "subject": "Physics",
+  "code": "NCEA Level 3",
+  "title": "NCEA Level 3 Physics",
+  "grades": [
+    "Year 13"
+  ],
+  "exam_years": "2026 (NCEA Level 3)",
+  "tiers": [
+    "Internal",
+    "External"
+  ],
+  "note": "NCEA achievement standards current for 2026. Each standard is assessed internally (during the year) or externally (end-of-year NZQA exam). NZ is replacing NCEA with new qualifications from 2028–2030, so check for changes each year.",
+  "source": "https://www.nzqa.govt.nz/ncea/assessment/search.do?query=Physics&view=all&level=03",
+  "topics": [
+    {
+      "code": "AS91523",
+      "title": "Demonstrate understanding of wave systems",
+      "tier": "External · 4 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91524",
+      "title": "Demonstrate understanding of mechanical systems",
+      "tier": "External · 6 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91526",
+      "title": "Demonstrate understanding of electrical systems",
+      "tier": "External · 6 credits",
+      "group": "Exam (external)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91521",
+      "title": "Carry out a practical investigation to test a physics theory relating two variables in a non-linear relationship",
+      "tier": "Internal · 4 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91522",
+      "title": "Demonstrate understanding of the application of physics to a selected context",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91525",
+      "title": "Demonstrate understanding of Modern Physics",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    },
+    {
+      "code": "AS91527",
+      "title": "Use physics knowledge to develop an informed response to a socio-scientific issue",
+      "tier": "Internal · 3 credits",
+      "group": "Internal (during the year)",
+      "subtopics": []
+    }
+  ]
+}
