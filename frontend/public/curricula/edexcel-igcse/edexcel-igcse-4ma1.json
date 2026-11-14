@@ -1,0 +1,218 @@
+{
+  "board": "Edexcel International GCSE",
+  "country": "International",
+  "grades": [
+    "Year 10",
+    "Year 11",
+    "Grade 9",
+    "Grade 10"
+  ],
+  "id": "edexcel-igcse-4ma1",
+  "subject": "Mathematics",
+  "code": "4MA1",
+  "title": "Edexcel International GCSE Mathematics A (4MA1)",
+  "exam_years": "Specification Issue 2 (first exam 2018, current)",
+  "tiers": [
+    "Foundation",
+    "Higher"
+  ],
+  "source": "https://qualifications.pearson.com/content/dam/pdf/International%20GCSE/Mathematics%20A/2016/Specification%20and%20sample%20assessments/international-gcse-in-mathematics-spec-a.pdf",
+  "topics": [
+    {
+      "code": "1",
+      "title": "Numbers and the number system",
+      "subtopics": [
+        {
+          "code": "1.1",
+          "title": "Integers"
+        },
+        {
+          "code": "1.2",
+          "title": "Fractions"
+        },
+        {
+          "code": "1.3",
+          "title": "Decimals"
+        },
+        {
+          "code": "1.4",
+          "title": "Powers and roots"
+        },
+        {
+          "code": "1.5",
+          "title": "Set language and notation"
+        },
+        {
+          "code": "1.6",
+          "title": "Percentages"
+        },
+        {
+          "code": "1.7",
+          "title": "Ratio and proportion"
+        },
+        {
+          "code": "1.8",
+          "title": "Degree of accuracy"
+        },
+        {
+          "code": "1.9",
+          "title": "Standard form"
+        },
+        {
+          "code": "1.10",
+          "title": "Applying number"
+        },
+        {
+          "code": "1.11",
+          "title": "Electronic calculators"
+        }
+      ]
+    },
+    {
+      "code": "2",
+      "title": "Equations, formulae and identities",
+      "subtopics": [
+        {
+          "code": "2.1",
+          "title": "Use of symbols"
+        },
+        {
+          "code": "2.2",
+          "title": "Algebraic manipulation"
+        },
+        {
+          "code": "2.3",
+          "title": "Expressions and formulae"
+        },
+        {
+          "code": "2.4",
+          "title": "Linear equations"
+        },
+        {
+          "code": "2.5",
+          "title": "Proportion",
+          "tier": "Higher"
+        },
+        {
+          "code": "2.6",
+          "title": "Simultaneous linear equations"
+        },
+        {
+          "code": "2.7",
+          "title": "Quadratic equations"
+        },
+        {
+          "code": "2.8",
+          "title": "Inequalities"
+        }
+      ]
+    },
+    {
+      "code": "3",
+      "title": "Sequences, functions and graphs",
+      "subtopics": [
+        {
+          "code": "3.1",
+          "title": "Sequences"
+        },
+        {
+          "code": "3.2",
+          "title": "Function notation",
+          "tier": "Higher"
+        },
+        {
+          "code": "3.3",
+          "title": "Graphs"
+        },
+        {
+          "code": "3.4",
+          "title": "Calculus",
+          "tier": "Higher"
+        }
+      ]
+    },
+    {
+      "code": "4",
+      "title": "Geometry and trigonometry",
+      "subtopics": [
+        {
+          "code": "4.1",
+          "title": "Angles, lines and triangles"
+        },
+        {
+          "code": "4.2",
+          "title": "Polygons"
+        },
+        {
+          "code": "4.3",
+          "title": "Symmetry"
+        },
+        {
+          "code": "4.4",
+          "title": "Measures"
+        },
+        {
+          "code": "4.5",
+          "title": "Construction"
+        },
+        {
+          "code": "4.6",
+          "title": "Circle properties"
+        },
+        {
+          "code": "4.7",
+          "title": "Geometrical reasoning"
+        },
+        {
+          "code": "4.8",
+          "title": "Trigonometry and Pythagoras’ theorem"
+        },
+        {
+          "code": "4.9",
+          "title": "Mensuration of 2D shapes"
+        },
+        {
+          "code": "4.10",
+          "title": "3D shapes and volume"
+        },
+        {
+          "code": "4.11",
+          "title": "Similarity"
+        }
+      ]
+    },
+    {
+      "code": "5",
+      "title": "Vectors and transformation geometry",
+      "subtopics": [
+        {
+          "code": "5.1",
+          "title": "Vectors",
+          "tier": "Higher"
+        },
+        {
+          "code": "5.2",
+          "title": "Transformation geometry"
+        }
+      ]
+    },
+    {
+      "code": "6",
+      "title": "Statistics and probability",
+      "subtopics": [
+        {
+          "code": "6.1",
+          "title": "Graphical representation of data"
+        },
+        {
+          "code": "6.2",
+          "title": "Statistical measures"
+        },
+        {
+          "code": "6.3",
+          "title": "Probability"
+        }
+      ]
+    }
+  ]
+}

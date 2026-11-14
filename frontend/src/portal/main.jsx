@@ -134,7 +134,7 @@ function App() {
   if (!profile) {
     return <main className="login-page"><div className="login-card"><Brand/><h1>Almost there.</h1><p className="muted">Your login works, but your student account hasn’t been set up yet. Please message your teacher.</p><button className="btn btn-ghost btn-wide" onClick={() => supabase.auth.signOut()}><LogOut size={16}/>Sign out</button></div></main>;
   }
-  return <Shell profile={profile}><SafetyNet><Suspense fallback={<Spinner/>}>{profile.role === 'teacher' ? <Teacher profile={profile}/> : <Student profile={profile}/>}</Suspense></SafetyNet></Shell>;
+  return <Shell profile={profile}><SafetyNet><Suspense fallback={<Spinner/>}>{profile.role === 'teacher' ? <Teacher profile={profile}/> : <Student profile={profile} onProfileChange={(changes) => setProfile((p) => ({ ...p, ...changes }))}/>}</Suspense></SafetyNet></Shell>;
 }
 
 /** If anything unexpected goes wrong while drawing a screen, show a friendly card instead of a blank page. */

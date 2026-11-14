@@ -1,0 +1,82 @@
+{
+  "board": "US Common Core",
+  "country": "United States",
+  "tiers": [],
+  "exam_years": "Standards (2010, current)",
+  "source": "https://corestandards.org/wp-content/uploads/2023/09/Math_Standards1.pdf",
+  "id": "us-ccss-math-grade-7",
+  "subject": "Mathematics",
+  "code": "CCSS Grade 7",
+  "title": "Common Core Mathematics: Grade 7",
+  "grades": [
+    "Grade 7"
+  ],
+  "topics": [
+    {
+      "code": "7.RP",
+      "title": "Ratios and Proportional Relationships",
+      "subtopics": [
+        {
+          "code": "7.RP.A",
+          "title": "Analyze proportional relationships and use them to solve real-world and mathematical problems"
+        }
+      ]
+    },
+    {
+      "code": "7.NS",
+      "title": "The Number System",
+      "subtopics": [
+        {
+          "code": "7.NS.A",
+          "title": "Apply and extend previous understandings of operations with fractions to add, subtract, multiply, and divide rational numbers"
+        }
+      ]
+    },
+    {
+      "code": "7.EE",
+      "title": "Expressions and Equations",
+      "subtopics": [
+        {
+          "code": "7.EE.A",
+          "title": "Use properties of operations to generate equivalent expressions"
+        },
+        {
+          "code": "7.EE.B",
+          "title": "Solve real-life and mathematical problems using numerical and algebraic expressions and equations"
+        }
+      ]
+    },
+    {
+      "code": "7.G",
+      "title": "Geometry",
+      "subtopics": [
+        {
+          "code": "7.G.A",
+          "title": "Draw, construct and describe geometrical figures and describe the relationships between them"
+        },
+        {
+          "code": "7.G.B",
+          "title": "Solve real-life and mathematical problems involving angle measure, area, surface area, and volume"
+        }
+      ]
+    },
+    {
+      "code": "7.SP",
+      "title": "Statistics and Probability",
+      "subtopics": [
+        {
+          "code": "7.SP.A",
+          "title": "Use random sampling to draw inferences about a population"
+        },
+        {
+          "code": "7.SP.B",
+          "title": "Draw informal comparative inferences about two populations"
+        },
+        {
+          "code": "7.SP.C",
+          "title": "Investigate chance processes and develop, use, and evaluate probability models"
+        }
+      ]
+    }
+  ]
+}

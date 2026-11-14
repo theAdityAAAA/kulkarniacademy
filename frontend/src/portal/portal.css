@@ -233,3 +233,48 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
   .login-card{padding:28px 22px}
   .tabs-small .tab{padding:9px 8px;font-size:14px;gap:6px}
 }
+
+/* ── Syllabus tracker ── */
+.card-head-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+.my-board{border-color:var(--line-strong);background:var(--purple-soft)}
+.rot{transform:rotate(180deg)}
+.syl-list{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:14px}
+.syl-block{display:grid;gap:12px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.syl-block-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:8px 14px}
+.syl-block-head h3{font-size:17px;color:var(--navy)}
+.syl-meter{display:grid;gap:6px}
+.syl-bar{display:flex;height:10px;border-radius:6px;background:#ecebe4;overflow:hidden}
+.syl-bar-mastered{background:var(--green)}
+.syl-bar-taught{background:#a993dc}
+.syl-meter-text{font-size:14px;color:var(--muted)}
+.syl-meter-text strong{color:var(--ink);font-size:15px}
+.syl-exam-date{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.syl-exam-date input{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.syl-topics{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.syl-group{margin-top:10px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--purple-dark)}
+.syl-topic{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.syl-topic-head,.syl-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border:0;background:none;text-align:left;font-size:15px}
+.syl-topic-head:hover,button.syl-item:hover{background:var(--bg)}
+.syl-item.is-sub{padding-left:22px;border-top:1px solid var(--line)}
+.syl-item-text{flex:1;min-width:0}
+.syl-code{font-size:13px;font-weight:700;color:var(--muted);margin-right:2px}
+.syl-tier{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;background:var(--amber-soft);color:var(--amber);font-size:12px;font-weight:700;vertical-align:1px}
+.syl-count{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
+.syl-count.is-done{color:var(--green)}
+.syl-subs{display:grid}
+.syl-bulk{display:flex;flex-wrap:wrap;gap:4px 16px;padding:4px 22px 6px}
+.syl-status{display:inline-grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--line);color:#c3c1b6}
+.syl-status.is-taught{border-color:#a993dc;background:var(--purple-soft);color:var(--purple-dark)}
+.syl-status.is-mastered{border-color:var(--green);background:var(--green);color:#fff}
+.syl-status-label{font-size:12px;font-weight:700;white-space:nowrap}
+.syl-status-label.is-taught{color:var(--purple-dark)}
+.syl-status-label.is-mastered{color:var(--green)}
+.syl-add{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin-top:14px}
+.syl-add label{flex:1;min-width:220px}
+.syl-source a{display:inline-flex;align-items:center;gap:4px;color:var(--purple-dark);font-weight:600}
+.syl-panel .syl-list{margin-top:0}
+@media(max-width:640px){
+  .syl-block{padding:12px}
+  .syl-item.is-sub{padding-left:14px}
+  .syl-status-label{display:none}
+}

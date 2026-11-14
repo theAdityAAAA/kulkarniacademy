@@ -1,0 +1,125 @@
+{
+  "board": "Singapore O-Level",
+  "country": "Singapore",
+  "grades": [
+    "Secondary 3",
+    "Secondary 4"
+  ],
+  "tiers": [],
+  "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+  "id": "sg-olevel-4052-2026",
+  "subject": "Mathematics",
+  "code": "4052",
+  "title": "Singapore O-Level Mathematics (4052)",
+  "source": "https://isomer-user-content.by.gov.sg/334/fece62fa-b6d4-4daf-ab47-96c9c168b51b/4052_y26_sy.pdf",
+  "topics": [
+    {
+      "code": "N1",
+      "title": "Numbers and their operations",
+      "group": "Number and Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "N2",
+      "title": "Ratio and proportion",
+      "group": "Number and Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "N3",
+      "title": "Percentage",
+      "group": "Number and Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "N4",
+      "title": "Rate and speed",
+      "group": "Number and Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "N5",
+      "title": "Algebraic expressions and formulae",
+      "group": "Number and Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "N6",
+      "title": "Functions and graphs",
+      "group": "Number and Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "N7",
+      "title": "Equations and inequalities",
+      "group": "Number and Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "N8",
+      "title": "Set language and notation",
+      "group": "Number and Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "N9",
+      "title": "Matrices",
+      "group": "Number and Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "G1",
+      "title": "Angles, triangles and polygons",
+      "group": "Geometry and Measurement",
+      "subtopics": []
+    },
+    {
+      "code": "G2",
+      "title": "Congruence and similarity",
+      "group": "Geometry and Measurement",
+      "subtopics": []
+    },
+    {
+      "code": "G3",
+      "title": "Properties of circles",
+      "group": "Geometry and Measurement",
+      "subtopics": []
+    },
+    {
+      "code": "G4",
+      "title": "Pythagoras’ theorem and trigonometry",
+      "group": "Geometry and Measurement",
+      "subtopics": []
+    },
+    {
+      "code": "G5",
+      "title": "Mensuration",
+      "group": "Geometry and Measurement",
+      "subtopics": []
+    },
+    {
+      "code": "G6",
+      "title": "Coordinate geometry",
+      "group": "Geometry and Measurement",
+      "subtopics": []
+    },
+    {
+      "code": "G7",
+      "title": "Vectors in two dimensions",
+      "group": "Geometry and Measurement",
+      "subtopics": []
+    },
+    {
+      "code": "S1",
+      "title": "Data handling and analysis",
+      "group": "Statistics and Probability",
+      "subtopics": []
+    },
+    {
+      "code": "S2",
+      "title": "Probability",
+      "group": "Statistics and Probability",
+      "subtopics": []
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "board": "Edexcel International GCSE",
+  "country": "International",
+  "grades": [
+    "Year 10",
+    "Year 11",
+    "Grade 9",
+    "Grade 10"
+  ],
+  "id": "edexcel-igcse-4bi1",
+  "subject": "Biology",
+  "code": "4BI1",
+  "title": "Edexcel International GCSE Biology (4BI1)",
+  "exam_years": "Current specification (first exam 2019)",
+  "tiers": [],
+  "note": "Content marked in bold with a “C” reference in the specification is for Paper 2 only.",
+  "source": "https://qualifications.pearson.com/content/dam/pdf/International%20GCSE/Biology/2017/specification-and-sample-assessments/international-gcse-biology-2017-specification1.pdf",
+  "topics": [
+    {
+      "code": "1",
+      "title": "The nature and variety of living organisms",
+      "subtopics": [
+        {
+          "code": "1a",
+          "title": "Characteristics of living organisms"
+        },
+        {
+          "code": "1b",
+          "title": "Variety of living organisms"
+        }
+      ]
+    },
+    {
+      "code": "2",
+      "title": "Structure and functions in living organisms",
+      "subtopics": [
+        {
+          "code": "2a",
+          "title": "Level of organisation"
+        },
+        {
+          "code": "2b",
+          "title": "Cell structure"
+        },
+        {
+          "code": "2c",
+          "title": "Biological molecules"
+        },
+        {
+          "code": "2d",
+          "title": "Movement of substances into and out of cells"
+        },
+        {
+          "code": "2e",
+          "title": "Nutrition"
+        },
+        {
+          "code": "2f",
+          "title": "Respiration"
+        },
+        {
+          "code": "2g",
+          "title": "Gas exchange"
+        },
+        {
+          "code": "2h",
+          "title": "Transport"
+        },
+        {
+          "code": "2i",
+          "title": "Excretion"
+        },
+        {
+          "code": "2j",
+          "title": "Co-ordination and response"
+        }
+      ]
+    },
+    {
+      "code": "3",
+      "title": "Reproduction and inheritance",
+      "subtopics": [
+        {
+          "code": "3a",
+          "title": "Reproduction"
+        },
+        {
+          "code": "3b",
+          "title": "Inheritance"
+        }
+      ]
+    },
+    {
+      "code": "4",
+      "title": "Ecology and the environment",
+      "subtopics": [
+        {
+          "code": "4a",
+          "title": "The organism in the environment"
+        },
+        {
+          "code": "4b",
+          "title": "Feeding relationships"
+        },
+        {
+          "code": "4c",
+          "title": "Cycles within ecosystems"
+        },
+        {
+          "code": "4d",
+          "title": "Human influences on the environment"
+        }
+      ]
+    },
+    {
+      "code": "5",
+      "title": "Use of biological resources",
+      "subtopics": [
+        {
+          "code": "5a",
+          "title": "Food production"
+        },
+        {
+          "code": "5b",
+          "title": "Selective breeding"
+        },
+        {
+          "code": "5c",
+          "title": "Genetic modification (genetic engineering)"
+        },
+        {
+          "code": "5d",
+          "title": "Cloning"
+        }
+      ]
+    }
+  ]
+}

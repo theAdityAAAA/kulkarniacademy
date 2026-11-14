@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { BookOpenCheck, CalendarDays, CheckCircle2, ClipboardList, LineChart, RefreshCw, RotateCcw, ShieldCheck, Upload, Video } from 'lucide-react';
+import { BookMarked, BookOpenCheck, CalendarDays, CheckCircle2, ClipboardList, LineChart, RefreshCw, RotateCcw, ShieldCheck, Upload, Video } from 'lucide-react';
 import Practice from './Practice';
 import ProgressChart, { progressPoints } from './ProgressChart';
 import StudentTests from './StudentTests';
+import { MyBoard, MySyllabus } from './Syllabus';
 import TestRunner from './TestRunner';
 import { ACCEPTED_FILES, checkFile, firstOf, must, supabase, uploadFile } from './supabase';
 import { Empty, FileLink, JoinButton, Notice, Spinner, classState, platformName, useAction, useNow } from './shared';
@@ -75,13 +76,14 @@ function HomeworkCard({ hw, userId, reload, now }) {
   </li>;
 }
 
-export default function Student({ profile }) {
+export default function Student({ profile, onProfileChange = () => {} }) {
   const now = useNow();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [tab, setTab] = useState('todo');
   const [refreshing, setRefreshing] = useState(false);
   const [runningTest, setRunningTest] = useState(null);
+  const [changingBoard, setChangingBoard] = useState(false);
 
   const load = useCallback(async () => {
     setRefreshing(true);
@@ -133,6 +135,8 @@ export default function Student({ profile }) {
     </section>
     <Notice>{error}</Notice>
 
+    {(!profile.board || !profile.grade) && !changingBoard && <MyBoard profile={profile} onSaved={(v) => onProfileChange(v)}/>}
+
     {next ? <NextClass cls={next} now={now}/> : <section className="next-class"><div><span className="eyebrow">YOUR NEXT CLASS</span><h2>No class booked yet</h2><p className="muted">Your teacher will add your next class here.</p></div><Video size={34} className="muted"/></section>}
 
     <div className="split">
@@ -151,6 +155,15 @@ export default function Student({ profile }) {
         <ProgressChart points={progressPoints(data.homework, data.tests)} title="Your scores"/>
       </section>
     </div>
+
+    <section className="card">
+      <div className="card-head-row">
+        <h2 className="card-title"><BookMarked size={20}/>My syllabus</h2>
+        {profile.board && profile.grade && !changingBoard && <span className="muted small">{profile.board} · {profile.grade} <button className="link-btn" onClick={() => setChangingBoard(true)}>Change</button></span>}
+      </div>
+      {changingBoard && <MyBoard profile={profile} onSaved={(v) => { onProfileChange(v); setChangingBoard(false); }} onCancel={() => setChangingBoard(false)}/>}
+      <MySyllabus profile={profile}/>
+    </section>
 
     <div className="split">
       <section className="card">

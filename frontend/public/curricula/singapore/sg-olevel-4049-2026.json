@@ -1,0 +1,77 @@
+{
+  "board": "Singapore O-Level",
+  "country": "Singapore",
+  "grades": [
+    "Secondary 3",
+    "Secondary 4"
+  ],
+  "tiers": [],
+  "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+  "id": "sg-olevel-4049-2026",
+  "subject": "Additional Mathematics",
+  "code": "4049",
+  "title": "Singapore O-Level Additional Mathematics (4049)",
+  "source": "https://isomer-user-content.by.gov.sg/334/f4aaac1d-0d7f-492b-88d9-43e392418490/4049_y26_sy.pdf",
+  "topics": [
+    {
+      "code": "A1",
+      "title": "Quadratic functions",
+      "group": "Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "A2",
+      "title": "Equations and inequalities",
+      "group": "Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "A3",
+      "title": "Surds",
+      "group": "Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "A4",
+      "title": "Polynomials and partial fractions",
+      "group": "Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "A5",
+      "title": "Binomial expansions",
+      "group": "Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "A6",
+      "title": "Exponential and logarithmic functions",
+      "group": "Algebra",
+      "subtopics": []
+    },
+    {
+      "code": "G1",
+      "title": "Trigonometric functions, identities and equations",
+      "group": "Geometry and Trigonometry",
+      "subtopics": []
+    },
+    {
+      "code": "G2",
+      "title": "Coordinate geometry in two dimensions",
+      "group": "Geometry and Trigonometry",
+      "subtopics": []
+    },
+    {
+      "code": "G3",
+      "title": "Proofs in plane geometry",
+      "group": "Geometry and Trigonometry",
+      "subtopics": []
+    },
+    {
+      "code": "C1",
+      "title": "Differentiation and integration",
+      "group": "Calculus",
+      "subtopics": []
+    }
+  ]
+}

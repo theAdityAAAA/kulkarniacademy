@@ -1,0 +1,89 @@
+{
+  "board": "Singapore O-Level",
+  "country": "Singapore",
+  "grades": [
+    "Secondary 3",
+    "Secondary 4"
+  ],
+  "tiers": [],
+  "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+  "id": "sg-olevel-6092-2026",
+  "subject": "Chemistry",
+  "code": "6092",
+  "title": "Singapore O-Level Chemistry (6092)",
+  "source": "https://isomer-user-content.by.gov.sg/334/19dfb9f9-b3ce-4609-a3cf-5d30052317f5/6092_y26_sy.pdf",
+  "topics": [
+    {
+      "code": "1",
+      "title": "Experimental Chemistry",
+      "group": "Matter – Structures and Properties",
+      "subtopics": []
+    },
+    {
+      "code": "2",
+      "title": "The Particulate Nature of Matter",
+      "group": "Matter – Structures and Properties",
+      "subtopics": []
+    },
+    {
+      "code": "3",
+      "title": "Chemical Bonding and Structure",
+      "group": "Matter – Structures and Properties",
+      "subtopics": []
+    },
+    {
+      "code": "4",
+      "title": "Chemical Calculations",
+      "group": "Chemical Reactions",
+      "subtopics": []
+    },
+    {
+      "code": "5",
+      "title": "Acid-Base Chemistry",
+      "group": "Chemical Reactions",
+      "subtopics": []
+    },
+    {
+      "code": "6",
+      "title": "Qualitative Analysis",
+      "group": "Chemical Reactions",
+      "subtopics": []
+    },
+    {
+      "code": "7",
+      "title": "Redox Chemistry",
+      "group": "Chemical Reactions",
+      "subtopics": []
+    },
+    {
+      "code": "8",
+      "title": "Patterns in the Periodic Table",
+      "group": "Chemical Reactions",
+      "subtopics": []
+    },
+    {
+      "code": "9",
+      "title": "Chemical Energetics",
+      "group": "Chemical Reactions",
+      "subtopics": []
+    },
+    {
+      "code": "10",
+      "title": "Rate of Reactions",
+      "group": "Chemical Reactions",
+      "subtopics": []
+    },
+    {
+      "code": "11",
+      "title": "Organic Chemistry",
+      "group": "Chemistry in a Sustainable World",
+      "subtopics": []
+    },
+    {
+      "code": "12",
+      "title": "Maintaining Air Quality",
+      "group": "Chemistry in a Sustainable World",
+      "subtopics": []
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "board": "Edexcel International GCSE",
+  "country": "International",
+  "grades": [
+    "Year 10",
+    "Year 11",
+    "Grade 9",
+    "Grade 10"
+  ],
+  "id": "edexcel-igcse-4ch1",
+  "subject": "Chemistry",
+  "code": "4CH1",
+  "title": "Edexcel International GCSE Chemistry (4CH1)",
+  "exam_years": "Current specification (first exam 2019)",
+  "tiers": [],
+  "note": "Content marked in bold with a “C” reference in the specification is for Paper 2 only.",
+  "source": "https://qualifications.pearson.com/content/dam/pdf/International%20GCSE/Chemistry/2017/specification-and-sample-assessments/international-gcse-chemistry-2017-specification.pdf",
+  "topics": [
+    {
+      "code": "1",
+      "title": "Principles of chemistry",
+      "subtopics": [
+        {
+          "code": "1a",
+          "title": "States of matter"
+        },
+        {
+          "code": "1b",
+          "title": "Elements, compounds and mixtures"
+        },
+        {
+          "code": "1c",
+          "title": "Atomic structure"
+        },
+        {
+          "code": "1d",
+          "title": "The Periodic Table"
+        },
+        {
+          "code": "1e",
+          "title": "Chemical formulae, equations and calculations"
+        },
+        {
+          "code": "1f",
+          "title": "Ionic bonding"
+        },
+        {
+          "code": "1g",
+          "title": "Covalent bonding"
+        },
+        {
+          "code": "1h",
+          "title": "Metallic bonding"
+        },
+        {
+          "code": "1i",
+          "title": "Electrolysis"
+        }
+      ]
+    },
+    {
+      "code": "2",
+      "title": "Inorganic chemistry",
+      "subtopics": [
+        {
+          "code": "2a",
+          "title": "Group 1 (alkali metals) – lithium, sodium and potassium"
+        },
+        {
+          "code": "2b",
+          "title": "Group 7 (halogens) – chlorine, bromine and iodine"
+        },
+        {
+          "code": "2c",
+          "title": "Gases in the atmosphere"
+        },
+        {
+          "code": "2d",
+          "title": "Reactivity series"
+        },
+        {
+          "code": "2e",
+          "title": "Extraction and uses of metals"
+        },
+        {
+          "code": "2f",
+          "title": "Acids, alkalis and titrations"
+        },
+        {
+          "code": "2g",
+          "title": "Acids, bases and salt preparations"
+        },
+        {
+          "code": "2h",
+          "title": "Chemical tests"
+        }
+      ]
+    },
+    {
+      "code": "3",
+      "title": "Physical chemistry",
+      "subtopics": [
+        {
+          "code": "3a",
+          "title": "Energetics"
+        },
+        {
+          "code": "3b",
+          "title": "Rates of reaction"
+        },
+        {
+          "code": "3c",
+          "title": "Reversible reactions and equilibria"
+        }
+      ]
+    },
+    {
+      "code": "4",
+      "title": "Organic chemistry",
+      "subtopics": [
+        {
+          "code": "4a",
+          "title": "Introduction"
+        },
+        {
+          "code": "4b",
+          "title": "Crude oil"
+        },
+        {
+          "code": "4c",
+          "title": "Alkanes"
+        },
+        {
+          "code": "4d",
+          "title": "Alkenes"
+        },
+        {
+          "code": "4e",
+          "title": "Alcohols"
+        },
+        {
+          "code": "4f",
+          "title": "Carboxylic acids"
+        },
+        {
+          "code": "4g",
+          "title": "Esters"
+        },
+        {
+          "code": "4h",
+          "title": "Synthetic polymers"
+        }
+      ]
+    }
+  ]
+}

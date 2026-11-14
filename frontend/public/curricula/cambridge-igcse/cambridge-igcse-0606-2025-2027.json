@@ -1,0 +1,89 @@
+{
+  "board": "Cambridge IGCSE",
+  "country": "International",
+  "grades": [
+    "Year 10",
+    "Year 11",
+    "Grade 9",
+    "Grade 10"
+  ],
+  "id": "cambridge-igcse-0606-2025-2027",
+  "subject": "Additional Mathematics",
+  "code": "0606",
+  "title": "Cambridge IGCSE Additional Mathematics (0606)",
+  "exam_years": "2025, 2026, 2027",
+  "tiers": [],
+  "source": "https://www.cambridgeinternational.org/Images/662470-2025-2027-syllabus.pdf",
+  "topics": [
+    {
+      "code": "1",
+      "title": "Functions",
+      "subtopics": []
+    },
+    {
+      "code": "2",
+      "title": "Quadratic functions",
+      "subtopics": []
+    },
+    {
+      "code": "3",
+      "title": "Factors of polynomials",
+      "subtopics": []
+    },
+    {
+      "code": "4",
+      "title": "Equations, inequalities and graphs",
+      "subtopics": []
+    },
+    {
+      "code": "5",
+      "title": "Simultaneous equations",
+      "subtopics": []
+    },
+    {
+      "code": "6",
+      "title": "Logarithmic and exponential functions",
+      "subtopics": []
+    },
+    {
+      "code": "7",
+      "title": "Straight-line graphs",
+      "subtopics": []
+    },
+    {
+      "code": "8",
+      "title": "Coordinate geometry of the circle",
+      "subtopics": []
+    },
+    {
+      "code": "9",
+      "title": "Circular measure",
+      "subtopics": []
+    },
+    {
+      "code": "10",
+      "title": "Trigonometry",
+      "subtopics": []
+    },
+    {
+      "code": "11",
+      "title": "Permutations and combinations",
+      "subtopics": []
+    },
+    {
+      "code": "12",
+      "title": "Series",
+      "subtopics": []
+    },
+    {
+      "code": "13",
+      "title": "Vectors in two dimensions",
+      "subtopics": []
+    },
+    {
+      "code": "14",
+      "title": "Calculus",
+      "subtopics": []
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "board": "Edexcel International GCSE",
+  "country": "International",
+  "grades": [
+    "Year 10",
+    "Year 11",
+    "Grade 9",
+    "Grade 10"
+  ],
+  "id": "edexcel-igcse-4ph1",
+  "subject": "Physics",
+  "code": "4PH1",
+  "title": "Edexcel International GCSE Physics (4PH1)",
+  "exam_years": "Current specification (first exam 2019)",
+  "tiers": [],
+  "note": "Content marked in bold with a “C” reference in the specification is for Paper 2 only.",
+  "source": "https://qualifications.pearson.com/content/dam/pdf/International%20GCSE/Physics/2017/specification-and-sample-assessments/international-gcse-physics-2017-specification.pdf",
+  "topics": [
+    {
+      "code": "1",
+      "title": "Forces and motion",
+      "subtopics": [
+        {
+          "code": "1b",
+          "title": "Movement and position"
+        },
+        {
+          "code": "1c",
+          "title": "Forces, movement, shape and momentum"
+        }
+      ]
+    },
+    {
+      "code": "2",
+      "title": "Electricity",
+      "subtopics": [
+        {
+          "code": "2b",
+          "title": "Mains electricity"
+        },
+        {
+          "code": "2c",
+          "title": "Energy and voltage in circuits"
+        },
+        {
+          "code": "2d",
+          "title": "Electric charge"
+        }
+      ]
+    },
+    {
+      "code": "3",
+      "title": "Waves",
+      "subtopics": [
+        {
+          "code": "3b",
+          "title": "Properties of waves"
+        },
+        {
+          "code": "3c",
+          "title": "The electromagnetic spectrum"
+        },
+        {
+          "code": "3d",
+          "title": "Light and sound"
+        }
+      ]
+    },
+    {
+      "code": "4",
+      "title": "Energy resources and energy transfers",
+      "subtopics": [
+        {
+          "code": "4b",
+          "title": "Energy transfers"
+        },
+        {
+          "code": "4c",
+          "title": "Work and power"
+        },
+        {
+          "code": "4d",
+          "title": "Energy resources and electricity generation"
+        }
+      ]
+    },
+    {
+      "code": "5",
+      "title": "Solids, liquids and gases",
+      "subtopics": [
+        {
+          "code": "5b",
+          "title": "Density and pressure"
+        },
+        {
+          "code": "5c",
+          "title": "Change of state"
+        },
+        {
+          "code": "5d",
+          "title": "Ideal gas molecules"
+        }
+      ]
+    },
+    {
+      "code": "6",
+      "title": "Magnetism and electromagnetism",
+      "subtopics": [
+        {
+          "code": "6b",
+          "title": "Magnetism"
+        },
+        {
+          "code": "6c",
+          "title": "Electromagnetism"
+        },
+        {
+          "code": "6d",
+          "title": "Electromagnetic induction"
+        }
+      ]
+    },
+    {
+      "code": "7",
+      "title": "Radioactivity and particles",
+      "subtopics": [
+        {
+          "code": "7b",
+          "title": "Radioactivity"
+        },
+        {
+          "code": "7c",
+          "title": "Fission and fusion"
+        }
+      ]
+    },
+    {
+      "code": "8",
+      "title": "Astrophysics",
+      "subtopics": [
+        {
+          "code": "8b",
+          "title": "Motion in the universe"
+        },
+        {
+          "code": "8c",
+          "title": "Stellar evolution"
+        },
+        {
+          "code": "8d",
+          "title": "Cosmology"
+        }
+      ]
+    }
+  ]
+}

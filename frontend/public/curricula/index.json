@@ -1,0 +1,280 @@
+{
+ "note": "Topic headings from each exam board’s official specification (see each file’s \"source\").",
+ "syllabi": [
+  {
+   "id": "cambridge-igcse-0606-2025-2027",
+   "board": "Cambridge IGCSE",
+   "subject": "Additional Mathematics",
+   "code": "0606",
+   "title": "Cambridge IGCSE Additional Mathematics (0606)",
+   "exam_years": "2025, 2026, 2027",
+   "path": "cambridge-igcse/cambridge-igcse-0606-2025-2027.json",
+   "topics": 14,
+   "items": 14
+  },
+  {
+   "id": "cambridge-igcse-0610-2026-2028",
+   "board": "Cambridge IGCSE",
+   "subject": "Biology",
+   "code": "0610",
+   "title": "Cambridge IGCSE Biology (0610)",
+   "exam_years": "2026, 2027, 2028",
+   "path": "cambridge-igcse/cambridge-igcse-0610-2026-2028.json",
+   "topics": 21,
+   "items": 61
+  },
+  {
+   "id": "cambridge-igcse-0620-2026-2028",
+   "board": "Cambridge IGCSE",
+   "subject": "Chemistry",
+   "code": "0620",
+   "title": "Cambridge IGCSE Chemistry (0620)",
+   "exam_years": "2026, 2027, 2028",
+   "path": "cambridge-igcse/cambridge-igcse-0620-2026-2028.json",
+   "topics": 12,
+   "items": 49
+  },
+  {
+   "id": "cambridge-igcse-0653-2025-2027",
+   "board": "Cambridge IGCSE",
+   "subject": "Combined Science",
+   "code": "0653",
+   "title": "Cambridge IGCSE Combined Science (0653)",
+   "exam_years": "2025, 2026, 2027",
+   "path": "cambridge-igcse/cambridge-igcse-0653-2025-2027.json",
+   "topics": 33,
+   "items": 87
+  },
+  {
+   "id": "cambridge-igcse-0580-2025-2027",
+   "board": "Cambridge IGCSE",
+   "subject": "Mathematics",
+   "code": "0580",
+   "title": "Cambridge IGCSE Mathematics (0580)",
+   "exam_years": "2025, 2026, 2027",
+   "path": "cambridge-igcse/cambridge-igcse-0580-2025-2027.json",
+   "topics": 9,
+   "items": 72
+  },
+  {
+   "id": "cambridge-igcse-0625-2026-2028",
+   "board": "Cambridge IGCSE",
+   "subject": "Physics",
+   "code": "0625",
+   "title": "Cambridge IGCSE Physics (0625)",
+   "exam_years": "2026, 2027, 2028",
+   "path": "cambridge-igcse/cambridge-igcse-0625-2026-2028.json",
+   "topics": 6,
+   "items": 24
+  },
+  {
+   "id": "edexcel-igcse-4bi1",
+   "board": "Edexcel International GCSE",
+   "subject": "Biology",
+   "code": "4BI1",
+   "title": "Edexcel International GCSE Biology (4BI1)",
+   "exam_years": "Current specification (first exam 2019)",
+   "path": "edexcel-igcse/edexcel-igcse-4bi1.json",
+   "topics": 5,
+   "items": 22
+  },
+  {
+   "id": "edexcel-igcse-4ch1",
+   "board": "Edexcel International GCSE",
+   "subject": "Chemistry",
+   "code": "4CH1",
+   "title": "Edexcel International GCSE Chemistry (4CH1)",
+   "exam_years": "Current specification (first exam 2019)",
+   "path": "edexcel-igcse/edexcel-igcse-4ch1.json",
+   "topics": 4,
+   "items": 28
+  },
+  {
+   "id": "edexcel-igcse-4ma1",
+   "board": "Edexcel International GCSE",
+   "subject": "Mathematics",
+   "code": "4MA1",
+   "title": "Edexcel International GCSE Mathematics A (4MA1)",
+   "exam_years": "Specification Issue 2 (first exam 2018, current)",
+   "path": "edexcel-igcse/edexcel-igcse-4ma1.json",
+   "topics": 6,
+   "items": 39
+  },
+  {
+   "id": "edexcel-igcse-4ph1",
+   "board": "Edexcel International GCSE",
+   "subject": "Physics",
+   "code": "4PH1",
+   "title": "Edexcel International GCSE Physics (4PH1)",
+   "exam_years": "Current specification (first exam 2019)",
+   "path": "edexcel-igcse/edexcel-igcse-4ph1.json",
+   "topics": 8,
+   "items": 22
+  },
+  {
+   "id": "gcse-aqa-8461",
+   "board": "GCSE (UK)",
+   "subject": "Biology",
+   "code": "8461",
+   "title": "GCSE Biology (AQA 8461)",
+   "exam_years": "Current specification (exams 2018 onwards)",
+   "path": "gcse-uk/gcse-aqa-8461.json",
+   "topics": 7,
+   "items": 24
+  },
+  {
+   "id": "gcse-aqa-8462",
+   "board": "GCSE (UK)",
+   "subject": "Chemistry",
+   "code": "8462",
+   "title": "GCSE Chemistry (AQA 8462)",
+   "exam_years": "Current specification (exams 2018 onwards)",
+   "path": "gcse-uk/gcse-aqa-8462.json",
+   "topics": 10,
+   "items": 30
+  },
+  {
+   "id": "gcse-aqa-8464",
+   "board": "GCSE (UK)",
+   "subject": "Combined Science",
+   "code": "8464",
+   "title": "GCSE Combined Science: Trilogy (AQA 8464)",
+   "exam_years": "Current specification (exams 2018 onwards)",
+   "path": "gcse-uk/gcse-aqa-8464.json",
+   "topics": 24,
+   "items": 61
+  },
+  {
+   "id": "gcse-aqa-8300",
+   "board": "GCSE (UK)",
+   "subject": "Mathematics",
+   "code": "8300",
+   "title": "GCSE Mathematics (AQA 8300)",
+   "exam_years": "Current specification (exams 2017 onwards)",
+   "path": "gcse-uk/gcse-aqa-8300.json",
+   "topics": 6,
+   "items": 13
+  },
+  {
+   "id": "gcse-aqa-8463",
+   "board": "GCSE (UK)",
+   "subject": "Physics",
+   "code": "8463",
+   "title": "GCSE Physics (AQA 8463)",
+   "exam_years": "Current specification (exams 2018 onwards)",
+   "path": "gcse-uk/gcse-aqa-8463.json",
+   "topics": 8,
+   "items": 30
+  },
+  {
+   "id": "cambridge-alevel-9709-2026-2027",
+   "board": "Cambridge AS & A Level",
+   "subject": "Mathematics",
+   "code": "9709",
+   "title": "Cambridge International AS & A Level Mathematics (9709)",
+   "exam_years": "2026, 2027",
+   "path": "cambridge-a-level/cambridge-alevel-9709-2026-2027.json",
+   "topics": 6,
+   "items": 38
+  },
+  {
+   "id": "us-ccss-math-grade-6",
+   "board": "US Common Core",
+   "subject": "Mathematics",
+   "code": "CCSS Grade 6",
+   "title": "Common Core Mathematics: Grade 6",
+   "exam_years": "Standards (2010, current)",
+   "path": "us-common-core/us-ccss-math-grade-6.json",
+   "topics": 5,
+   "items": 10
+  },
+  {
+   "id": "us-ccss-math-grade-7",
+   "board": "US Common Core",
+   "subject": "Mathematics",
+   "code": "CCSS Grade 7",
+   "title": "Common Core Mathematics: Grade 7",
+   "exam_years": "Standards (2010, current)",
+   "path": "us-common-core/us-ccss-math-grade-7.json",
+   "topics": 5,
+   "items": 9
+  },
+  {
+   "id": "us-ccss-math-grade-8",
+   "board": "US Common Core",
+   "subject": "Mathematics",
+   "code": "CCSS Grade 8",
+   "title": "Common Core Mathematics: Grade 8",
+   "exam_years": "Standards (2010, current)",
+   "path": "us-common-core/us-ccss-math-grade-8.json",
+   "topics": 5,
+   "items": 10
+  },
+  {
+   "id": "us-ccss-math-high-school",
+   "board": "US Common Core",
+   "subject": "Mathematics",
+   "code": "CCSS High School",
+   "title": "Common Core Mathematics: High School",
+   "exam_years": "Standards (2010, current)",
+   "path": "us-common-core/us-ccss-math-high-school.json",
+   "topics": 22,
+   "items": 54
+  },
+  {
+   "id": "sg-olevel-4049-2026",
+   "board": "Singapore O-Level",
+   "subject": "Additional Mathematics",
+   "code": "4049",
+   "title": "Singapore O-Level Additional Mathematics (4049)",
+   "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+   "path": "singapore/sg-olevel-4049-2026.json",
+   "topics": 10,
+   "items": 10
+  },
+  {
+   "id": "sg-olevel-6093-2026",
+   "board": "Singapore O-Level",
+   "subject": "Biology",
+   "code": "6093",
+   "title": "Singapore O-Level Biology (6093)",
+   "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+   "path": "singapore/sg-olevel-6093-2026.json",
+   "topics": 14,
+   "items": 14
+  },
+  {
+   "id": "sg-olevel-6092-2026",
+   "board": "Singapore O-Level",
+   "subject": "Chemistry",
+   "code": "6092",
+   "title": "Singapore O-Level Chemistry (6092)",
+   "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+   "path": "singapore/sg-olevel-6092-2026.json",
+   "topics": 12,
+   "items": 12
+  },
+  {
+   "id": "sg-olevel-4052-2026",
+   "board": "Singapore O-Level",
+   "subject": "Mathematics",
+   "code": "4052",
+   "title": "Singapore O-Level Mathematics (4052)",
+   "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+   "path": "singapore/sg-olevel-4052-2026.json",
+   "topics": 18,
+   "items": 18
+  },
+  {
+   "id": "sg-olevel-6091-2026",
+   "board": "Singapore O-Level",
+   "subject": "Physics",
+   "code": "6091",
+   "title": "Singapore O-Level Physics (6091)",
+   "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+   "path": "singapore/sg-olevel-6091-2026.json",
+   "topics": 20,
+   "items": 20
+  }
+ ]
+}

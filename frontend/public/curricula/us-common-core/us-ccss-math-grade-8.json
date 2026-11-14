@@ -1,0 +1,86 @@
+{
+  "board": "US Common Core",
+  "country": "United States",
+  "tiers": [],
+  "exam_years": "Standards (2010, current)",
+  "source": "https://corestandards.org/wp-content/uploads/2023/09/Math_Standards1.pdf",
+  "id": "us-ccss-math-grade-8",
+  "subject": "Mathematics",
+  "code": "CCSS Grade 8",
+  "title": "Common Core Mathematics: Grade 8",
+  "grades": [
+    "Grade 8"
+  ],
+  "topics": [
+    {
+      "code": "8.NS",
+      "title": "The Number System",
+      "subtopics": [
+        {
+          "code": "8.NS.A",
+          "title": "Know that there are numbers that are not rational, and approximate them by rational numbers"
+        }
+      ]
+    },
+    {
+      "code": "8.EE",
+      "title": "Expressions and Equations",
+      "subtopics": [
+        {
+          "code": "8.EE.A",
+          "title": "Work with radicals and integer exponents"
+        },
+        {
+          "code": "8.EE.B",
+          "title": "Understand the connections between proportional relationships, lines, and linear equations"
+        },
+        {
+          "code": "8.EE.C",
+          "title": "Analyze and solve linear equations and pairs of simultaneous linear equations"
+        }
+      ]
+    },
+    {
+      "code": "8.F",
+      "title": "Functions",
+      "subtopics": [
+        {
+          "code": "8.F.A",
+          "title": "Define, evaluate, and compare functions"
+        },
+        {
+          "code": "8.F.B",
+          "title": "Use functions to model relationships between quantities"
+        }
+      ]
+    },
+    {
+      "code": "8.G",
+      "title": "Geometry",
+      "subtopics": [
+        {
+          "code": "8.G.A",
+          "title": "Understand congruence and similarity using physical models, transparencies, or geometry software"
+        },
+        {
+          "code": "8.G.B",
+          "title": "Understand and apply the Pythagorean Theorem"
+        },
+        {
+          "code": "8.G.C",
+          "title": "Solve real-world and mathematical problems involving volume of cylinders, cones and spheres"
+        }
+      ]
+    },
+    {
+      "code": "8.SP",
+      "title": "Statistics and Probability",
+      "subtopics": [
+        {
+          "code": "8.SP.A",
+          "title": "Investigate patterns of association in bivariate data"
+        }
+      ]
+    }
+  ]
+}

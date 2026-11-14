@@ -1,0 +1,101 @@
+{
+  "board": "Singapore O-Level",
+  "country": "Singapore",
+  "grades": [
+    "Secondary 3",
+    "Secondary 4"
+  ],
+  "tiers": [],
+  "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+  "id": "sg-olevel-6093-2026",
+  "subject": "Biology",
+  "code": "6093",
+  "title": "Singapore O-Level Biology (6093)",
+  "source": "https://isomer-user-content.by.gov.sg/334/3d8f2c30-36a3-4aa3-babe-4a41b314a381/6093_y26_sy.pdf",
+  "topics": [
+    {
+      "code": "1",
+      "title": "Cell Structure and Organisation",
+      "group": "Cells and the Chemistry of Life",
+      "subtopics": []
+    },
+    {
+      "code": "2",
+      "title": "Movement of Substances",
+      "group": "Cells and the Chemistry of Life",
+      "subtopics": []
+    },
+    {
+      "code": "3",
+      "title": "Biological Molecules",
+      "group": "Cells and the Chemistry of Life",
+      "subtopics": []
+    },
+    {
+      "code": "4",
+      "title": "Nutrition in Humans",
+      "group": "The Human Body – Maintaining Life",
+      "subtopics": []
+    },
+    {
+      "code": "5",
+      "title": "Transport in Humans",
+      "group": "The Human Body – Maintaining Life",
+      "subtopics": []
+    },
+    {
+      "code": "6",
+      "title": "Respiration in Humans",
+      "group": "The Human Body – Maintaining Life",
+      "subtopics": []
+    },
+    {
+      "code": "7",
+      "title": "Excretion in Humans",
+      "group": "The Human Body – Maintaining Life",
+      "subtopics": []
+    },
+    {
+      "code": "8",
+      "title": "Homeostasis, Co-ordination and Response in Humans",
+      "group": "The Human Body – Maintaining Life",
+      "subtopics": []
+    },
+    {
+      "code": "9",
+      "title": "Infectious Diseases in Humans",
+      "group": "The Human Body – Maintaining Life",
+      "subtopics": []
+    },
+    {
+      "code": "10",
+      "title": "Nutrition and Transport in Flowering Plants",
+      "group": "Living Together – Plants, Animals and Ecosystems",
+      "subtopics": []
+    },
+    {
+      "code": "11",
+      "title": "Organisms and their Environment",
+      "group": "Living Together – Plants, Animals and Ecosystems",
+      "subtopics": []
+    },
+    {
+      "code": "12",
+      "title": "Molecular Genetics",
+      "group": "Continuity of Life",
+      "subtopics": []
+    },
+    {
+      "code": "13",
+      "title": "Reproduction",
+      "group": "Continuity of Life",
+      "subtopics": []
+    },
+    {
+      "code": "14",
+      "title": "Inheritance",
+      "group": "Continuity of Life",
+      "subtopics": []
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Copy, FileText, HardDrive, KeyRound, LineChart, MessageCircle, Pencil, Trash2, UserPlus, Users, Wand2 } from 'lucide-react';
+import { BookMarked, Copy, FileText, HardDrive, KeyRound, LineChart, MessageCircle, Pencil, Trash2, UserPlus, Users, Wand2 } from 'lucide-react';
 import ParentReport from './ParentReport';
 import ProgressChart, { progressPoints } from './ProgressChart';
+import { BoardGradeFields } from './boards';
+import { SyllabusPanel } from './Syllabus';
 import { api, must, supabase } from './supabase';
 import { Empty, Notice, useAction } from './shared';
 import { commonZones, dateTimeLabel, isValidZone, otherZones, placeName, timeLabel } from './time';
@@ -62,10 +64,7 @@ function AddStudent({ reload, onCreated }) {
     <label>Password
       <span className="input-with-btn"><input value={form.password} onChange={set('password')} required minLength={8} maxLength={72} autoComplete="off"/><button type="button" className="icon-btn" onClick={() => setForm((f) => ({ ...f, password: generatePassword() }))} title="Make a new password" aria-label="Make a new password"><Wand2 size={18}/></button></span>
     </label>
-    <div className="grid-2">
-      <label>Year / grade <span className="optional">(optional)</span><input value={form.grade} onChange={set('grade')} maxLength={60} placeholder="e.g. Year 9"/></label>
-      <label>Board <span className="optional">(optional)</span><input value={form.board} onChange={set('board')} maxLength={100} placeholder="e.g. IGCSE"/></label>
-    </div>
+    <BoardGradeFields board={form.board} grade={form.grade} onChange={(v) => setForm((f) => ({ ...f, ...v }))}/>
     <label>Student’s time zone<ZoneSelect value={form.timezone} onChange={set('timezone')}/></label>
     <Notice>{error}</Notice>
     <button className="btn btn-primary" disabled={busy}>{busy ? 'Creating…' : 'Create login'}</button>
@@ -76,7 +75,7 @@ function AddStudent({ reload, onCreated }) {
 function StudentCard({ student, login, upcoming, now, reload, homework, tests }) {
   const points = progressPoints(homework, tests);
   const [report, setReport] = useState(false);
-  const [mode, setMode] = useState(null); // 'edit' | 'password' | 'progress'
+  const [mode, setMode] = useState(null); // 'edit' | 'password' | 'progress' | 'syllabus'
   const [form, setForm] = useState({ full_name: student.full_name, grade: student.grade ?? '', board: student.board ?? '', timezone: student.timezone });
   const [newPassword, setNewPassword] = useState('');
   const [resetDone, setResetDone] = useState(null);
@@ -117,18 +116,17 @@ function StudentCard({ student, login, upcoming, now, reload, homework, tests })
     </dl>
     <div className="row">
       <button className="btn btn-ghost btn-small" onClick={() => setMode(mode === 'progress' ? null : 'progress')} aria-pressed={mode === 'progress'}><LineChart size={15}/>Progress</button>
+      <button className="btn btn-ghost btn-small" onClick={() => setMode(mode === 'syllabus' ? null : 'syllabus')} aria-pressed={mode === 'syllabus'}><BookMarked size={15}/>Syllabus</button>
       <button className="btn btn-ghost btn-small" onClick={() => setReport(true)}><FileText size={15}/>Parent report</button>
-      <button className="btn btn-ghost btn-small" onClick={() => { setMode(mode === 'edit' ? null : 'edit'); setResetDone(null); }}><Pencil size={15}/>Edit details</button>
+      <button className="btn btn-ghost btn-small" onClick={() => { setForm({ full_name: student.full_name, grade: student.grade ?? '', board: student.board ?? '', timezone: student.timezone }); setMode(mode === 'edit' ? null : 'edit'); setResetDone(null); }}><Pencil size={15}/>Edit details</button>
       <button className="btn btn-ghost btn-small" onClick={() => { setMode(mode === 'password' ? null : 'password'); setNewPassword(generatePassword()); setResetDone(null); }}><KeyRound size={15}/>Reset password</button>
     </div>
     {report && <ParentReport student={student} homework={homework} tests={tests} onClose={() => setReport(false)}/>}
     {mode === 'progress' && <div className="inset"><ProgressChart points={points} title={`${student.full_name.split(' ')[0]}’s scores`}/></div>}
+    {mode === 'syllabus' && <div className="inset"><SyllabusPanel student={student}/></div>}
     {mode === 'edit' && <form className="form inset" onSubmit={save}>
       <label>Name<input value={form.full_name} onChange={set('full_name')} required maxLength={80}/></label>
-      <div className="grid-2">
-        <label>Year / grade<input value={form.grade} onChange={set('grade')} maxLength={60}/></label>
-        <label>Board<input value={form.board} onChange={set('board')} maxLength={100}/></label>
-      </div>
+      <BoardGradeFields board={form.board} grade={form.grade} onChange={(v) => setForm((f) => ({ ...f, ...v }))}/>
       <label>Time zone<ZoneSelect value={form.timezone} onChange={set('timezone')}/></label>
       <button className="btn btn-primary btn-small" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
     </form>}

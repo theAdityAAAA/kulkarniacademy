@@ -1,0 +1,390 @@
+{
+  "board": "US Common Core",
+  "country": "United States",
+  "tiers": [],
+  "exam_years": "Standards (2010, current)",
+  "source": "https://corestandards.org/wp-content/uploads/2023/09/Math_Standards1.pdf",
+  "id": "us-ccss-math-high-school",
+  "subject": "Mathematics",
+  "code": "CCSS High School",
+  "title": "Common Core Mathematics: High School",
+  "grades": [
+    "Grade 9",
+    "Grade 10",
+    "Grade 11",
+    "Grade 12"
+  ],
+  "note": "Schools teach these as Algebra 1, Geometry, Algebra 2 (or Integrated Math I–III). Modeling is woven through all categories.",
+  "topics": [
+    {
+      "code": "N-RN",
+      "title": "The Real Number System",
+      "group": "Number and Quantity",
+      "subtopics": [
+        {
+          "code": "N-RN.A",
+          "title": "Extend the properties of exponents to rational exponents"
+        },
+        {
+          "code": "N-RN.B",
+          "title": "Use properties of rational and irrational numbers"
+        }
+      ]
+    },
+    {
+      "code": "N-Q",
+      "title": "Quantities",
+      "group": "Number and Quantity",
+      "subtopics": [
+        {
+          "code": "N-Q.A",
+          "title": "Reason quantitatively and use units to solve problems"
+        }
+      ]
+    },
+    {
+      "code": "N-CN",
+      "title": "The Complex Number System",
+      "group": "Number and Quantity",
+      "subtopics": [
+        {
+          "code": "N-CN.A",
+          "title": "Perform arithmetic operations with complex numbers"
+        },
+        {
+          "code": "N-CN.B",
+          "title": "Represent complex numbers and their operations on the complex plane"
+        },
+        {
+          "code": "N-CN.C",
+          "title": "Use complex numbers in polynomial identities and equations"
+        }
+      ]
+    },
+    {
+      "code": "N-VM",
+      "title": "Vector and Matrix Quantities",
+      "group": "Number and Quantity",
+      "subtopics": [
+        {
+          "code": "N-VM.A",
+          "title": "Represent and model with vector quantities"
+        },
+        {
+          "code": "N-VM.B",
+          "title": "Perform operations on vectors"
+        },
+        {
+          "code": "N-VM.C",
+          "title": "Perform operations on matrices and use matrices in applications"
+        }
+      ]
+    },
+    {
+      "code": "A-SSE",
+      "title": "Seeing Structure in Expressions",
+      "group": "Algebra",
+      "subtopics": [
+        {
+          "code": "A-SSE.A",
+          "title": "Interpret the structure of expressions"
+        },
+        {
+          "code": "A-SSE.B",
+          "title": "Write expressions in equivalent forms to solve problems"
+        }
+      ]
+    },
+    {
+      "code": "A-APR",
+      "title": "Arithmetic with Polynomials and Rational Expressions",
+      "group": "Algebra",
+      "subtopics": [
+        {
+          "code": "A-APR.A",
+          "title": "Perform arithmetic operations on polynomials"
+        },
+        {
+          "code": "A-APR.B",
+          "title": "Understand the relationship between zeros and factors of polynomials"
+        },
+        {
+          "code": "A-APR.C",
+          "title": "Use polynomial identities to solve problems"
+        },
+        {
+          "code": "A-APR.D",
+          "title": "Rewrite rational expressions"
+        }
+      ]
+    },
+    {
+      "code": "A-CED",
+      "title": "Creating Equations",
+      "group": "Algebra",
+      "subtopics": [
+        {
+          "code": "A-CED.A",
+          "title": "Create equations that describe numbers or relationships"
+        }
+      ]
+    },
+    {
+      "code": "A-REI",
+      "title": "Reasoning with Equations and Inequalities",
+      "group": "Algebra",
+      "subtopics": [
+        {
+          "code": "A-REI.A",
+          "title": "Understand solving equations as a process of reasoning and explain the reasoning"
+        },
+        {
+          "code": "A-REI.B",
+          "title": "Solve equations and inequalities in one variable"
+        },
+        {
+          "code": "A-REI.C",
+          "title": "Solve systems of equations"
+        },
+        {
+          "code": "A-REI.D",
+          "title": "Represent and solve equations and inequalities graphically"
+        }
+      ]
+    },
+    {
+      "code": "F-IF",
+      "title": "Interpreting Functions",
+      "group": "Functions",
+      "subtopics": [
+        {
+          "code": "F-IF.A",
+          "title": "Understand the concept of a function and use function notation"
+        },
+        {
+          "code": "F-IF.B",
+          "title": "Interpret functions that arise in applications in terms of the context"
+        },
+        {
+          "code": "F-IF.C",
+          "title": "Analyze functions using different representations"
+        }
+      ]
+    },
+    {
+      "code": "F-BF",
+      "title": "Building Functions",
+      "group": "Functions",
+      "subtopics": [
+        {
+          "code": "F-BF.A",
+          "title": "Build a function that models a relationship between two quantities"
+        },
+        {
+          "code": "F-BF.B",
+          "title": "Build new functions from existing functions"
+        }
+      ]
+    },
+    {
+      "code": "F-LE",
+      "title": "Linear, Quadratic, and Exponential Models",
+      "group": "Functions",
+      "subtopics": [
+        {
+          "code": "F-LE.A",
+          "title": "Construct and compare linear, quadratic, and exponential models and solve problems"
+        },
+        {
+          "code": "F-LE.B",
+          "title": "Interpret expressions for functions in terms of the situation they model"
+        }
+      ]
+    },
+    {
+      "code": "F-TF",
+      "title": "Trigonometric Functions",
+      "group": "Functions",
+      "subtopics": [
+        {
+          "code": "F-TF.A",
+          "title": "Extend the domain of trigonometric functions using the unit circle"
+        },
+        {
+          "code": "F-TF.B",
+          "title": "Model periodic phenomena with trigonometric functions"
+        },
+        {
+          "code": "F-TF.C",
+          "title": "Prove and apply trigonometric identities"
+        }
+      ]
+    },
+    {
+      "code": "G-CO",
+      "title": "Congruence",
+      "group": "Geometry",
+      "subtopics": [
+        {
+          "code": "G-CO.A",
+          "title": "Experiment with transformations in the plane"
+        },
+        {
+          "code": "G-CO.B",
+          "title": "Understand congruence in terms of rigid motions"
+        },
+        {
+          "code": "G-CO.C",
+          "title": "Prove geometric theorems"
+        },
+        {
+          "code": "G-CO.D",
+          "title": "Make geometric constructions"
+        }
+      ]
+    },
+    {
+      "code": "G-SRT",
+      "title": "Similarity, Right Triangles, and Trigonometry",
+      "group": "Geometry",
+      "subtopics": [
+        {
+          "code": "G-SRT.A",
+          "title": "Understand similarity in terms of similarity transformations"
+        },
+        {
+          "code": "G-SRT.B",
+          "title": "Prove theorems involving similarity"
+        },
+        {
+          "code": "G-SRT.C",
+          "title": "Define trigonometric ratios and solve problems involving right triangles"
+        },
+        {
+          "code": "G-SRT.D",
+          "title": "Apply trigonometry to general triangles"
+        }
+      ]
+    },
+    {
+      "code": "G-C",
+      "title": "Circles",
+      "group": "Geometry",
+      "subtopics": [
+        {
+          "code": "G-C.A",
+          "title": "Understand and apply theorems about circles"
+        },
+        {
+          "code": "G-C.B",
+          "title": "Find arc lengths and areas of sectors of circles"
+        }
+      ]
+    },
+    {
+      "code": "G-GPE",
+      "title": "Expressing Geometric Properties with Equations",
+      "group": "Geometry",
+      "subtopics": [
+        {
+          "code": "G-GPE.A",
+          "title": "Translate between the geometric description and the equation for a conic section"
+        },
+        {
+          "code": "G-GPE.B",
+          "title": "Use coordinates to prove simple geometric theorems algebraically"
+        }
+      ]
+    },
+    {
+      "code": "G-GMD",
+      "title": "Geometric Measurement and Dimension",
+      "group": "Geometry",
+      "subtopics": [
+        {
+          "code": "G-GMD.A",
+          "title": "Explain volume formulas and use them to solve problems"
+        },
+        {
+          "code": "G-GMD.B",
+          "title": "Visualize relationships between two-dimensional and three-dimensional objects"
+        }
+      ]
+    },
+    {
+      "code": "G-MG",
+      "title": "Modeling with Geometry",
+      "group": "Geometry",
+      "subtopics": [
+        {
+          "code": "G-MG.A",
+          "title": "Apply geometric concepts in modeling situations"
+        }
+      ]
+    },
+    {
+      "code": "S-ID",
+      "title": "Interpreting Categorical and Quantitative Data",
+      "group": "Statistics and Probability",
+      "subtopics": [
+        {
+          "code": "S-ID.A",
+          "title": "Summarize, represent, and interpret data on a single count or measurement variable"
+        },
+        {
+          "code": "S-ID.B",
+          "title": "Summarize, represent, and interpret data on two categorical and quantitative variables"
+        },
+        {
+          "code": "S-ID.C",
+          "title": "Interpret linear models"
+        }
+      ]
+    },
+    {
+      "code": "S-IC",
+      "title": "Making Inferences and Justifying Conclusions",
+      "group": "Statistics and Probability",
+      "subtopics": [
+        {
+          "code": "S-IC.A",
+          "title": "Understand and evaluate random processes underlying statistical experiments"
+        },
+        {
+          "code": "S-IC.B",
+          "title": "Make inferences and justify conclusions from sample surveys, experiments and observational studies"
+        }
+      ]
+    },
+    {
+      "code": "S-CP",
+      "title": "Conditional Probability and the Rules of Probability",
+      "group": "Statistics and Probability",
+      "subtopics": [
+        {
+          "code": "S-CP.A",
+          "title": "Understand independence and conditional probability and use them to interpret data"
+        },
+        {
+          "code": "S-CP.B",
+          "title": "Use the rules of probability to compute probabilities of compound events in a uniform probability model"
+        }
+      ]
+    },
+    {
+      "code": "S-MD",
+      "title": "Using Probability to Make Decisions",
+      "group": "Statistics and Probability",
+      "subtopics": [
+        {
+          "code": "S-MD.A",
+          "title": "Calculate expected values and use them to solve problems"
+        },
+        {
+          "code": "S-MD.B",
+          "title": "Use probability to evaluate outcomes of decisions"
+        }
+      ]
+    }
+  ]
+}

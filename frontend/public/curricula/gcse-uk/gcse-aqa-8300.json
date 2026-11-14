@@ -1,0 +1,94 @@
+{
+  "board": "GCSE (UK)",
+  "country": "United Kingdom",
+  "grades": [
+    "Year 10",
+    "Year 11"
+  ],
+  "id": "gcse-aqa-8300",
+  "subject": "Mathematics",
+  "code": "8300",
+  "title": "GCSE Mathematics (AQA 8300)",
+  "exam_years": "Current specification (exams 2017 onwards)",
+  "tiers": [
+    "Foundation",
+    "Higher"
+  ],
+  "note": "AQA, Edexcel (1MA1) and OCR (J560) GCSE Maths all teach the same Department for Education content.",
+  "source": "https://filestore.aqa.org.uk/resources/mathematics/specifications/AQA-8300-SP-2015.PDF",
+  "topics": [
+    {
+      "code": "3.1",
+      "title": "Number",
+      "subtopics": [
+        {
+          "code": "3.1.1",
+          "title": "Structure and calculation"
+        },
+        {
+          "code": "3.1.2",
+          "title": "Fractions, decimals and percentages"
+        },
+        {
+          "code": "3.1.3",
+          "title": "Measures and accuracy"
+        }
+      ]
+    },
+    {
+      "code": "3.2",
+      "title": "Algebra",
+      "subtopics": [
+        {
+          "code": "3.2.1",
+          "title": "Notation, vocabulary and manipulation"
+        },
+        {
+          "code": "3.2.2",
+          "title": "Graphs"
+        },
+        {
+          "code": "3.2.3",
+          "title": "Solving equations and inequalities"
+        },
+        {
+          "code": "3.2.4",
+          "title": "Sequences"
+        }
+      ]
+    },
+    {
+      "code": "3.3",
+      "title": "Ratio, proportion and rates of change",
+      "subtopics": []
+    },
+    {
+      "code": "3.4",
+      "title": "Geometry and measures",
+      "subtopics": [
+        {
+          "code": "3.4.1",
+          "title": "Properties and constructions"
+        },
+        {
+          "code": "3.4.2",
+          "title": "Mensuration and calculation"
+        },
+        {
+          "code": "3.4.3",
+          "title": "Vectors"
+        }
+      ]
+    },
+    {
+      "code": "3.5",
+      "title": "Probability",
+      "subtopics": []
+    },
+    {
+      "code": "3.6",
+      "title": "Statistics",
+      "subtopics": []
+    }
+  ]
+}

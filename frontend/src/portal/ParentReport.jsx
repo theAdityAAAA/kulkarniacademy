@@ -4,6 +4,7 @@ import { firstOf, must, supabase } from './supabase';
 import { Notice } from './shared';
 import { dayLabel } from './time';
 import ProgressChart, { progressPoints } from './ProgressChart';
+import { syllabusSummary } from './Syllabus';
 
 // A one-page progress report for parents. Nothing is published: you print it / save it as PDF,
 // or copy a short summary into WhatsApp. (No public links, so children's data stays private.)
@@ -15,6 +16,7 @@ export default function ParentReport({ student, homework, tests, onClose }) {
   const dialog = useRef(null);
   const [period, setPeriod] = useState('30');
   const [classes, setClasses] = useState(null);
+  const [syllabi, setSyllabi] = useState([]);
   const [note, setNote] = useState('');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
@@ -26,6 +28,8 @@ export default function ParentReport({ student, homework, tests, onClose }) {
     let live = true;
     supabase.from('classes').select('starts_at, status, subject').eq('student_id', student.id).lte('starts_at', new Date().toISOString()).then(must)
       .then((rows) => live && setClasses(rows)).catch((e) => live && setError(e.message));
+    // Syllabus coverage is optional: before supabase/009_syllabus.sql is run, the report simply leaves it out.
+    syllabusSummary(student.id).then((rows) => live && setSyllabi(rows)).catch(() => {});
     return () => { live = false; };
   }, [student.id]);
 
@@ -47,6 +51,7 @@ export default function ParentReport({ student, homework, tests, onClose }) {
     `• Tests taken: ${doneTests.length}${testAvg !== null ? ` · average ${testAvg}%` : ''}`,
     ...scored.map(({ t, a }) => `   – ${t.title}${(t.attempt_no ?? 1) > 1 ? ` (attempt ${t.attempt_no})` : ''}: ${pct(a)}%`),
     `• Homework: ${hwIn.length} of ${hwSet.length} handed in${hwAvg !== null ? ` · average ${hwAvg}%` : ''}`,
+    ...syllabi.map((x) => `• ${x.title}: ${x.percent}% of the syllabus covered (${x.mastered} of ${x.total} topics mastered)${x.days > 0 ? ` · exam in ${x.days} days` : ''}`),
     note.trim() ? `\n${note.trim()}` : '',
     '\n— Aditya Kulkarni, Kulkarni Academy',
   ].filter(Boolean).join('\n');
@@ -86,6 +91,12 @@ export default function ParentReport({ student, homework, tests, onClose }) {
       </section>
 
       {points.length > 0 && <section className="report-section"><ProgressChart points={points} title="Scores over time"/></section>}
+
+      {syllabi.length > 0 && <section className="report-section">
+        <h2>Syllabus covered</h2>
+        <table className="chart-table"><thead><tr><th>Syllabus</th><th>Covered</th><th>Mastered</th><th>Exam</th></tr></thead>
+          <tbody>{syllabi.map((x) => <tr key={x.title}><td>{x.title}</td><td>{x.percent}%</td><td>{x.mastered} of {x.total} topics</td><td>{x.exam_date ? (x.days > 0 ? `in ${x.days} days` : dayLabel(`${x.exam_date}T12:00:00`)) : '—'}</td></tr>)}</tbody></table>
+      </section>}
 
       {doneTests.length > 0 && <section className="report-section">
         <h2>Tests</h2>

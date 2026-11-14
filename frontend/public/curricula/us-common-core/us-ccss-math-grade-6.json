@@ -1,0 +1,86 @@
+{
+  "board": "US Common Core",
+  "country": "United States",
+  "tiers": [],
+  "exam_years": "Standards (2010, current)",
+  "source": "https://corestandards.org/wp-content/uploads/2023/09/Math_Standards1.pdf",
+  "id": "us-ccss-math-grade-6",
+  "subject": "Mathematics",
+  "code": "CCSS Grade 6",
+  "title": "Common Core Mathematics: Grade 6",
+  "grades": [
+    "Grade 6"
+  ],
+  "topics": [
+    {
+      "code": "6.RP",
+      "title": "Ratios and Proportional Relationships",
+      "subtopics": [
+        {
+          "code": "6.RP.A",
+          "title": "Understand ratio concepts and use ratio reasoning to solve problems"
+        }
+      ]
+    },
+    {
+      "code": "6.NS",
+      "title": "The Number System",
+      "subtopics": [
+        {
+          "code": "6.NS.A",
+          "title": "Apply and extend previous understandings of multiplication and division to divide fractions by fractions"
+        },
+        {
+          "code": "6.NS.B",
+          "title": "Compute fluently with multi-digit numbers and find common factors and multiples"
+        },
+        {
+          "code": "6.NS.C",
+          "title": "Apply and extend previous understandings of numbers to the system of rational numbers"
+        }
+      ]
+    },
+    {
+      "code": "6.EE",
+      "title": "Expressions and Equations",
+      "subtopics": [
+        {
+          "code": "6.EE.A",
+          "title": "Apply and extend previous understandings of arithmetic to algebraic expressions"
+        },
+        {
+          "code": "6.EE.B",
+          "title": "Reason about and solve one-variable equations and inequalities"
+        },
+        {
+          "code": "6.EE.C",
+          "title": "Represent and analyze quantitative relationships between dependent and independent variables"
+        }
+      ]
+    },
+    {
+      "code": "6.G",
+      "title": "Geometry",
+      "subtopics": [
+        {
+          "code": "6.G.A",
+          "title": "Solve real-world and mathematical problems involving area, surface area, and volume"
+        }
+      ]
+    },
+    {
+      "code": "6.SP",
+      "title": "Statistics and Probability",
+      "subtopics": [
+        {
+          "code": "6.SP.A",
+          "title": "Develop understanding of statistical variability"
+        },
+        {
+          "code": "6.SP.B",
+          "title": "Summarize and describe distributions"
+        }
+      ]
+    }
+  ]
+}

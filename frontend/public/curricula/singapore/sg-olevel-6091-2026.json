@@ -1,0 +1,137 @@
+{
+  "board": "Singapore O-Level",
+  "country": "Singapore",
+  "grades": [
+    "Secondary 3",
+    "Secondary 4"
+  ],
+  "tiers": [],
+  "exam_years": "2026 (from 2027: Singapore-Cambridge SEC, same subject codes)",
+  "id": "sg-olevel-6091-2026",
+  "subject": "Physics",
+  "code": "6091",
+  "title": "Singapore O-Level Physics (6091)",
+  "source": "https://isomer-user-content.by.gov.sg/334/42ee79d0-bb13-43f5-94ab-629729f88aa0/6091_y26_sy.pdf",
+  "topics": [
+    {
+      "code": "1",
+      "title": "Physical Quantities, Units and Measurement",
+      "group": "Measurement",
+      "subtopics": []
+    },
+    {
+      "code": "2",
+      "title": "Kinematics",
+      "group": "Newtonian Mechanics",
+      "subtopics": []
+    },
+    {
+      "code": "3",
+      "title": "Dynamics",
+      "group": "Newtonian Mechanics",
+      "subtopics": []
+    },
+    {
+      "code": "4",
+      "title": "Turning Effects of Forces",
+      "group": "Newtonian Mechanics",
+      "subtopics": []
+    },
+    {
+      "code": "5",
+      "title": "Pressure",
+      "group": "Newtonian Mechanics",
+      "subtopics": []
+    },
+    {
+      "code": "6",
+      "title": "Energy",
+      "group": "Newtonian Mechanics",
+      "subtopics": []
+    },
+    {
+      "code": "7",
+      "title": "Kinetic Particle Model of Matter",
+      "group": "Thermal Physics",
+      "subtopics": []
+    },
+    {
+      "code": "8",
+      "title": "Thermal Processes",
+      "group": "Thermal Physics",
+      "subtopics": []
+    },
+    {
+      "code": "9",
+      "title": "Thermal Properties of Matter",
+      "group": "Thermal Physics",
+      "subtopics": []
+    },
+    {
+      "code": "10",
+      "title": "General Properties of Waves",
+      "group": "Waves",
+      "subtopics": []
+    },
+    {
+      "code": "11",
+      "title": "Electromagnetic Spectrum",
+      "group": "Waves",
+      "subtopics": []
+    },
+    {
+      "code": "12",
+      "title": "Light",
+      "group": "Waves",
+      "subtopics": []
+    },
+    {
+      "code": "13",
+      "title": "Static Electricity",
+      "group": "Electricity and Magnetism",
+      "subtopics": []
+    },
+    {
+      "code": "14",
+      "title": "Current of Electricity",
+      "group": "Electricity and Magnetism",
+      "subtopics": []
+    },
+    {
+      "code": "15",
+      "title": "D.C. Circuits",
+      "group": "Electricity and Magnetism",
+      "subtopics": []
+    },
+    {
+      "code": "16",
+      "title": "Practical Electricity",
+      "group": "Electricity and Magnetism",
+      "subtopics": []
+    },
+    {
+      "code": "17",
+      "title": "Magnetism",
+      "group": "Electricity and Magnetism",
+      "subtopics": []
+    },
+    {
+      "code": "18",
+      "title": "Electromagnetism",
+      "group": "Electricity and Magnetism",
+      "subtopics": []
+    },
+    {
+      "code": "19",
+      "title": "Electromagnetic Induction",
+      "group": "Electricity and Magnetism",
+      "subtopics": []
+    },
+    {
+      "code": "20",
+      "title": "Radioactivity",
+      "group": "Radioactivity",
+      "subtopics": []
+    }
+  ]
+}
