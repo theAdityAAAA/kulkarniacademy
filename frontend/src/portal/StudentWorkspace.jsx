@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BookMarked, CalendarPlus, CheckCircle2, ChevronDown, ClipboardCheck, Clock, FileText, KeyRound, LineChart, PenLine, Plus, Send, ShieldCheck, Target, Trophy, UserRound, Wand2, X } from 'lucide-react';
+import { BookMarked, CalendarPlus, CheckCircle2, ChevronDown, ClipboardCheck, Clock, FileText, KeyRound, LineChart, PenLine, Plus, Search, Send, ShieldCheck, Target, Trophy, UserRound, Wand2, X } from 'lucide-react';
 import ParentReport from './ParentReport';
 import ProgressChart, { progressPoints } from './ProgressChart';
 import { BoardGradeFields } from './boards';
 import { SyllabusPanel, coverage, useStudentSyllabi } from './Syllabus';
 import { ClassRow, ScheduleForm } from './TeacherClasses';
-import { AssignForm, HomeworkItem } from './TeacherHomework';
+import TeacherHomework, { AssignForm, HomeworkItem } from './TeacherHomework';
+import { NewPaper, PaperView, ResultGroup, groupAttempts } from './TestPapers';
 import { CredentialsCard, ZoneSelect, generatePassword } from './TeacherStudents';
 import { api, firstOf, must, supabase } from './supabase';
 import { Empty, JoinButton, Notice, classState, useAction } from './shared';
@@ -163,7 +164,7 @@ function Goals({ student, onOpenSyllabus }) {
   });
 }
 
-function HomeTab({ student, data, now, reload, openTest, goLibrary, setTab }) {
+function HomeTab({ student, data, now, reload, openPaper, giveTest, setTab }) {
   const [sheet, setSheet] = useState(null); // { kind: 'homework' | 'assign' | 'schedule', hw }
   const mine = (rows) => rows.filter((r) => r.student_id === student.id);
   const homework = mine(data.homework);
@@ -190,15 +191,15 @@ function HomeTab({ student, data, now, reload, openTest, goLibrary, setTab }) {
       <SectionHead title="PENDING FOR REVIEW" count={pending} open={reviewOpen} onToggle={() => setReviewOpen(!reviewOpen)}/>
       {reviewOpen && (pending
         ? <ul className="hw-list">
-            {testsToMark.map((t) => <li key={t.id} className="ws-review-test"><span><ShieldCheck size={17}/><strong>{t.title}</strong><span className="muted small"> · written answers to mark</span></span><button className="btn btn-primary btn-small" onClick={() => openTest(t.paper_id)}><PenLine size={15}/>Mark</button></li>)}
+            {testsToMark.map((t) => <li key={t.id} className="ws-review-test"><span><ShieldCheck size={17}/><strong>{t.title}</strong><span className="muted small"> · written answers to mark</span></span><button className="btn btn-primary btn-small" onClick={() => openPaper(t.paper_id)}><PenLine size={15}/>Mark</button></li>)}
             {toMark.map((h) => <HomeworkItem key={h.id} hw={h} student={student} reload={reload}/>)}
           </ul>
         : <p className="muted small ws-quiet"><CheckCircle2 size={16}/>Nothing to review. All caught up.</p>)}
     </section>
 
     <section className="ws-section">
-      <SectionHead title="TESTS" count={tests.length}><button className="link-btn" onClick={goLibrary}>Test library</button></SectionHead>
-      <TestCards tests={recentTests} now={now} onOpen={openTest} onAdd={goLibrary}/>
+      <SectionHead title="TESTS" count={tests.length}><button className="link-btn" onClick={() => setTab('tests')}>All of {first(student.full_name)}’s tests</button></SectionHead>
+      <TestCards tests={recentTests} now={now} onOpen={openPaper} onAdd={giveTest}/>
     </section>
 
     <section className="ws-section">
@@ -309,9 +310,67 @@ function ProfileTab({ student, login, now, reload }) {
   </div>;
 }
 
-const TABS = [['home', 'Home'], ['progress', 'Progress'], ['syllabus', 'Syllabus'], ['profile', 'Profile']];
+// ─── Tests (this student only) ────────────────────────────────────────────
+function TestsTab({ student, data, now, reload, focus }) {
+  const [paperId, setPaperId] = useState(focus?.id ?? null);
+  const [picking, setPicking] = useState(Boolean(focus?.pick));
+  const [query, setQuery] = useState('');
+  useEffect(() => {
+    if (focus?.id) { setPaperId(focus.id); setPicking(false); }
+    else if (focus?.pick) { setPaperId(null); setPicking(true); }
+  }, [focus?.at]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!data.testsReady) return <Notice>Tests need a database update. In Supabase, open SQL Editor, paste <code>supabase/004_test_papers.sql</code>, click Run, then refresh.</Notice>;
 
-export default function StudentWorkspace({ student, data, login, now, reload, openTest, goLibrary, tab, setTab }) {
+  const questionsOf = (id) => data.questions.filter((q) => q.paper_id === id && !q.archived).sort((a, b) => a.position - b.position || a.created_at.localeCompare(b.created_at));
+  const testsOf = (id) => data.tests.filter((t) => t.paper_id === id);
+  const paper = data.papers.find((p) => p.id === paperId);
+  const open = (id) => { setPaperId(id); setPicking(false); document.querySelector('.t-workspace')?.scrollTo({ top: 0 }); };
+  if (paper) return <PaperView key={paper.id} paper={paper} questions={questionsOf(paper.id)} tests={testsOf(paper.id)} students={data.students} student={student}
+    reload={reload} now={now} onBack={() => setPaperId(null)} onOpen={open}/>;
+
+  const name = first(student.full_name);
+  const mine = data.tests.filter((t) => t.student_id === student.id);
+  const has = new Set(mine.map((t) => t.paper_id));
+  const groups = groupAttempts(mine).sort((a, b) => b.at(-1).opens_at.localeCompare(a.at(-1).opens_at));
+  const q = query.trim().toLowerCase();
+  // Tests for the same grade/subject first, so the right one is easy to find with many tests.
+  const library = data.papers.filter((p) => !q || `${p.title} ${p.subject} ${p.grade ?? ''}`.toLowerCase().includes(q))
+    .sort((a, b) => (has.has(a.id) - has.has(b.id)) || ((b.grade === student.grade) - (a.grade === student.grade)) || b.created_at.localeCompare(a.created_at));
+
+  return <div className="ws-tests">
+    <SectionHead title={`${name.toUpperCase()}’S TESTS`} count={groups.length}>
+      <button className="btn btn-primary btn-small" onClick={() => setPicking(!picking)} aria-expanded={picking}><Send size={15}/>Give a test</button>
+    </SectionHead>
+    {picking && <div className="split ws-give">
+      <NewPaper students={data.students} heading={`Make a new test for ${name}`} defaults={student.grade ? { grade: student.grade } : {}} onCreated={async (id) => { await reload(); open(id); }}/>
+      <section className="card">
+        <h2 className="card-title"><ClipboardCheck size={20}/>Or use a test you’ve made</h2>
+        <div className="t-search ws-paper-search"><Search size={16}/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your tests" aria-label="Search your tests"/></div>
+        {library.length ? <ul className="paper-list">{library.map((p) => <li key={p.id}><button className="paper-card" onClick={() => open(p.id)}>
+          <span className="paper-main"><strong>{p.title}</strong><span className="muted small">{p.subject}{p.grade ? ` · ${p.grade}` : ''} · {questionsOf(p.id).length} questions</span></span>
+          <span className="paper-meta">{has.has(p.id) ? <span className="badge badge-muted">{name} has it</span> : <span className="badge badge-accent">Give</span>}</span>
+        </button></li>)}</ul> : <Empty icon={ClipboardCheck} title={data.papers.length ? 'No test matches' : 'No tests made yet'}>{data.papers.length ? null : 'Make the first one on the left.'}</Empty>}
+      </section>
+    </div>}
+    {groups.length ? <ul className="hw-list">{groups.map((g) => <ResultGroup key={g[0].id} tests={g} student={student} title={g.at(-1).title}
+        count={questionsOf(g[0].paper_id).length} reload={reload} now={now} onOpenPaper={() => open(g[0].paper_id)}/>)}</ul>
+      : !picking && <Empty icon={ShieldCheck} title={`No tests for ${name} yet`}>Click “Give a test” to make one or reuse one you’ve made.</Empty>}
+  </div>;
+}
+
+// ─── Homework (this student only) ─────────────────────────────────────────
+function HomeworkTab({ student, data, reload }) {
+  return <TeacherHomework students={[student]} fixedStudent={student} homework={data.homework.filter((h) => h.student_id === student.id)} reload={reload}/>;
+}
+
+const TABS = [['home', 'Home'], ['homework', 'Homework'], ['tests', 'Tests'], ['progress', 'Progress'], ['syllabus', 'Syllabus'], ['profile', 'Profile']];
+
+export default function StudentWorkspace({ student, data, login, now, reload, focus = null, tab, setTab }) {
+  // Which test to open (or "give a test") when switching to the Tests tab.
+  const [testFocus, setTestFocus] = useState(focus);
+  useEffect(() => { if (focus) setTestFocus(focus); }, [focus?.at]); // eslint-disable-line react-hooks/exhaustive-deps
+  const openPaper = (id) => { setTestFocus({ id, at: Date.now() }); setTab('tests'); };
+  const giveTest = () => { setTestFocus({ pick: true, at: Date.now() }); setTab('tests'); };
   return <div className="ws">
     <header className="ws-top">
       <span className="ws-top-name">{first(student.full_name)}’s workspace</span>
@@ -321,7 +380,9 @@ export default function StudentWorkspace({ student, data, login, now, reload, op
       <span className="ws-top-spacer"/>
     </header>
     <div className="ws-body" role="tabpanel">
-      {tab === 'home' && <HomeTab student={student} data={data} now={now} reload={reload} openTest={openTest} goLibrary={goLibrary} setTab={setTab}/>}
+      {tab === 'home' && <HomeTab student={student} data={data} now={now} reload={reload} openPaper={openPaper} giveTest={giveTest} setTab={setTab}/>}
+      {tab === 'homework' && <HomeworkTab student={student} data={data} reload={reload}/>}
+      {tab === 'tests' && <TestsTab student={student} data={data} now={now} reload={reload} focus={testFocus}/>}
       {tab === 'progress' && <ProgressTab student={student} data={data} now={now}/>}
       {tab === 'syllabus' && <section className="card"><h2 className="card-title"><BookMarked size={20}/>Syllabus</h2><p className="hint">Click a topic once for Taught, twice for Mastered. {first(student.full_name)} and their parents see the same list.</p><SyllabusPanel student={student}/></section>}
       {tab === 'profile' && <ProfileTab student={student} login={login} now={now} reload={reload}/>}

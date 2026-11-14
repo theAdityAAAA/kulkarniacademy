@@ -129,7 +129,8 @@ export function HomeworkItem({ hw, student, reload, startOpen = false }) {
   </li>;
 }
 
-export default function TeacherHomework({ students, homework, reload }) {
+/** With `fixedStudent`, this is one student's Homework tab: set and mark homework for them only. */
+export default function TeacherHomework({ students, homework, reload, fixedStudent = null }) {
   const byId = useMemo(() => Object.fromEntries(students.map((s) => [s.id, s])), [students]);
   const [filter, setFilter] = useState('');
   const visible = filter ? homework.filter((h) => h.student_id === filter) : homework;
@@ -139,7 +140,7 @@ export default function TeacherHomework({ students, homework, reload }) {
     { title: 'Marked', items: visible.filter((h) => h.marked_at).slice(0, 30), empty: 'Nothing marked yet.' },
   ];
   return <div className="split">
-    <AssignForm students={students} reload={reload}/>
+    <AssignForm students={students} reload={reload} fixedStudent={fixedStudent}/>
     <section className="card">
       <div className="card-head">
         <h2 className="card-title"><ClipboardCheck size={20}/>Homework</h2>

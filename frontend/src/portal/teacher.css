@@ -184,3 +184,10 @@
 .sheet{padding-top:58px}
 .ws-win{flex:none}
 .ws-profile .card-title{margin-bottom:12px}
+
+/* Per-student Tests and Homework tabs */
+.ws-tests{display:grid;gap:16px}
+.ws-tests > .ws-section-head{margin-bottom:0}
+.ws-give{margin-bottom:4px}
+.ws-paper-search{margin:4px 0 12px}
+.give-hint{display:flex;align-items:center;gap:8px;padding:14px 16px;border:1px dashed var(--line-strong);border-radius:12px;background:var(--purple-soft)}

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CalendarDays, ClipboardCheck, Filter, HardDrive, KeyRound, LayoutDashboard, LibraryBig, LogOut, RefreshCw, Search, Settings, UserPlus, Users } from 'lucide-react';
+import { CalendarDays, Filter, HardDrive, KeyRound, LayoutDashboard, LibraryBig, LogOut, RefreshCw, Search, Settings, UserPlus, Users } from 'lucide-react';
 import TestPapers from './TestPapers';
 import Attention from './Attention';
 import StudentWorkspace, { avatarTone, initials } from './StudentWorkspace';
@@ -7,7 +7,6 @@ import { api, firstOf, must, supabase } from './supabase';
 import { Empty, JoinButton, Notice, Spinner, classState, useNow } from './shared';
 import { dateTimeLabel, placeName, relativeLabel, timeLabel } from './time';
 import TeacherClasses from './TeacherClasses';
-import TeacherHomework from './TeacherHomework';
 import { AddStudent, StorageCleanup } from './TeacherStudents';
 import './teacher.css';
 
@@ -16,17 +15,16 @@ const RAIL = [
   { id: 'today', label: 'Today', icon: LayoutDashboard },
   { id: 'students', label: 'Students', icon: Users },
   { id: 'calendar', label: 'Calendar', icon: CalendarDays },
-  { id: 'homework', label: 'Homework', icon: ClipboardCheck },
-  { id: 'library', label: 'Tests', icon: LibraryBig },
+  { id: 'library', label: 'Library', icon: LibraryBig },
 ];
 const VIEWS = [...RAIL.map((r) => r.id), 'account'];
-const WS_TABS = ['home', 'progress', 'syllabus', 'profile'];
+const WS_TABS = ['home', 'homework', 'tests', 'progress', 'syllabus', 'profile'];
 
 /** "#students/<id>/<tab>", "#calendar", … so a refresh or the back button keeps your place. */
 function readHash() {
   const [view, studentId, tab] = location.hash.slice(1).split('/');
   // Old links (#classes, #tests) from before the new layout still work.
-  const old = { classes: 'calendar', tests: 'library' }[view];
+  const old = { classes: 'calendar', tests: 'library', homework: 'students' }[view];
   return { view: VIEWS.includes(view) ? view : old ?? 'students', studentId: studentId || null, tab: WS_TABS.includes(tab) ? tab : 'home' };
 }
 
@@ -66,7 +64,7 @@ function StudentList({ students, selected, onSelect, onAdd, adding, badges }) {
   </aside>;
 }
 
-function Today({ profile, data, now, load, refreshing, go, openTest, error }) {
+function Today({ profile, data, now, load, refreshing, go, openTest, openHomework, error }) {
   const studentsById = Object.fromEntries(data.students.map((s) => [s.id, s]));
   const nextClass = data.classes.find((c) => ['live', 'soon', 'later'].includes(classState(c, now)));
   const thisWeek = data.classes.filter((c) => c.status !== 'cancelled' && new Date(c.starts_at).getTime() >= now && new Date(c.starts_at).getTime() < now + 7 * 86400000).length;
@@ -88,10 +86,10 @@ function Today({ profile, data, now, load, refreshing, go, openTest, error }) {
         </> : <p>No classes scheduled.</p>}
       </article>
       <article className="stat"><button className="stat-button" onClick={() => go('calendar')}><span className="stat-label">Classes in the next 7 days</span><strong className="stat-number">{thisWeek}</strong></button></article>
-      <article className="stat"><button className="stat-button" onClick={() => go('homework')}><span className="stat-label">Homework to mark</span><strong className="stat-number">{toMark}</strong></button></article>
+      <article className="stat"><button className="stat-button" onClick={openHomework}><span className="stat-label">Homework to mark</span><strong className="stat-number">{toMark}</strong></button></article>
       <article className="stat"><button className="stat-button" onClick={() => go('students')}><span className="stat-label">Students</span><strong className="stat-number">{data.students.length}</strong></button></article>
     </section>
-    {data.testsReady && <Attention data={data} now={now} goTo={(id) => go({ classes: 'calendar', tests: 'library' }[id] ?? id)} openTest={openTest}/>}
+    {data.testsReady && <Attention data={data} now={now} goTo={(id) => (id === 'homework' ? openHomework() : go({ classes: 'calendar', tests: 'library' }[id] ?? id))} openTest={openTest}/>}
   </div>;
 }
 
@@ -165,7 +163,16 @@ export default function Teacher({ profile, onChangePassword = () => {} }) {
     document.querySelectorAll('.t-main, .t-workspace').forEach((el) => el.scrollTo({ top: 0 }));
   };
   const go = (view) => { setAdding(false); navigate({ view }); };
-  const openTest = (paperId) => { setFocusPaper({ id: paperId, at: Date.now() }); go('library'); };
+  // A test is opened inside its student's workspace (Tests tab); without a student, in the library.
+  const openTest = (paperId, studentId = null) => {
+    setFocusPaper({ id: paperId, studentId, at: Date.now() });
+    if (studentId) { setAdding(false); navigate({ view: 'students', studentId, tab: 'tests' }); } else go('library');
+  };
+  // "Homework to mark": open the first student who has handed something in, on their Homework tab.
+  const openHomework = () => {
+    const h = data?.homework.find((x) => x.submission && !x.marked_at);
+    if (h) { setAdding(false); navigate({ view: 'students', studentId: h.student_id, tab: 'homework' }); } else go('students');
+  };
 
   const badges = useMemo(() => {
     const out = {};
@@ -179,7 +186,7 @@ export default function Teacher({ profile, onChangePassword = () => {} }) {
 
   const toMark = data.homework.filter((h) => h.submission && !h.marked_at).length;
   const testsToMark = data.tests.filter((t) => firstOf(t.test_attempts)?.pending_marks > 0).length;
-  const railCount = { homework: toMark, library: testsToMark };
+  const railCount = { students: toMark + testsToMark };
   // In the Students view, open the chosen student, or the first one.
   const student = data.students.find((s) => s.id === route.studentId) ?? (route.studentId ? null : data.students[0]);
   const showAdd = adding || !data.students.length;
@@ -204,14 +211,13 @@ export default function Teacher({ profile, onChangePassword = () => {} }) {
           {loginError && <Notice>{`${loginError} Adding students and resetting passwords need the backend.`}</Notice>}
           {showAdd ? <div className="t-add"><AddStudent reload={load} onCreated={loadLogins}/></div>
             : student ? <StudentWorkspace key={student.id} student={student} data={data} login={logins[student.id]} now={now} reload={load}
-                openTest={openTest} goLibrary={() => go('library')} tab={route.tab} setTab={(tab) => navigate({ studentId: student.id, tab })}/>
+                focus={focusPaper?.studentId === student.id ? focusPaper : null} tab={route.tab} setTab={(tab) => navigate({ studentId: student.id, tab })}/>
             : <Empty icon={Users} title="Student not found">They may have been removed. Pick someone from the list.</Empty>}
         </section>
       </div>}
 
-      {route.view === 'today' && <Today profile={profile} data={data} now={now} load={load} refreshing={refreshing} go={go} openTest={openTest} error={error}/>}
+      {route.view === 'today' && <Today profile={profile} data={data} now={now} load={load} refreshing={refreshing} go={go} openTest={openTest} openHomework={openHomework} error={error}/>}
       {route.view === 'calendar' && <div className="t-page"><h1 className="t-page-title">Calendar</h1><TeacherClasses students={data.students} classes={data.classes} reload={load} now={now}/></div>}
-      {route.view === 'homework' && <div className="t-page"><h1 className="t-page-title">Homework</h1><TeacherHomework students={data.students} homework={data.homework} reload={load}/></div>}
       {route.view === 'library' && <div className="t-page"><h1 className="t-page-title">Test library</h1>
         {data.testsReady ? <TestPapers papers={data.papers} questions={data.questions} tests={data.tests} students={data.students} reload={load} now={now} focus={focusPaper}/>
           : <Notice>Tests need a database update. In Supabase, open SQL Editor, paste the file <code>supabase/004_test_papers.sql</code>, click Run, then press Refresh.</Notice>}</div>}

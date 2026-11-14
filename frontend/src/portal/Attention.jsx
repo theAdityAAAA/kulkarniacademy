@@ -32,7 +32,7 @@ export default function Attention({ data, now, goTo, openTest }) {
   const testsToMark = data.tests.filter((t) => firstOf(t.test_attempts)?.pending_marks > 0);
   for (const t of testsToMark) {
     items.push({ key: `m-${t.id}`, rank: 1, icon: PenLine, text: <>Mark {firstOf(t.test_attempts).pending_marks} written answer{firstOf(t.test_attempts).pending_marks > 1 ? 's' : ''} from <strong>{byId[t.student_id]?.full_name ?? 'a student'}</strong> in “{t.title}”</>,
-      action: <button className="btn btn-ghost btn-small" onClick={() => openTest(t.paper_id)}>Mark</button> });
+      action: <button className="btn btn-ghost btn-small" onClick={() => openTest(t.paper_id, t.student_id)}>Mark</button> });
   }
   const hwToMark = data.homework.filter((h) => h.submission && !h.marked_at);
   if (hwToMark.length) {
@@ -52,7 +52,7 @@ export default function Attention({ data, now, goTo, openTest }) {
     }
     if (!a && s && closes <= now && now - closes < 14 * DAY) {
       items.push({ key: `x-${t.id}`, rank: 3, icon: AlertTriangle, text: <><strong>{s.full_name}</strong> missed “{t.title}” (closed {dateTimeLabel(t.closes_at)})</>,
-        action: <button className="btn btn-ghost btn-small" onClick={() => openTest(t.paper_id)}>Reopen</button> });
+        action: <button className="btn btn-ghost btn-small" onClick={() => openTest(t.paper_id, t.student_id)}>Reopen</button> });
     }
   }
   // 4. Homework past its due date and not handed in (last 2 weeks).

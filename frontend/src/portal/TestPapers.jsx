@@ -13,7 +13,7 @@ const toInput = (date) => {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 };
 /** Groups each student's first attempt with its re-attempts: [[first, second, …], …] */
-const groupAttempts = (tests) => {
+export const groupAttempts = (tests) => {
   const groups = new Map();
   for (const t of tests) { const key = t.retake_of ?? t.id; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(t); }
   return [...groups.values()];
@@ -21,8 +21,8 @@ const groupAttempts = (tests) => {
 const pct = (a) => (Number(a?.max_points) ? Math.round((Number(a.points) / Number(a.max_points)) * 100) : 0);
 
 // ─── Create ────────────────────────────────────────────────────────────────
-function NewPaper({ students, onCreated }) {
-  const [form, setForm] = useState({ title: '', subject: 'Maths', grade: '' });
+export function NewPaper({ students, onCreated, heading = 'New test', defaults = {} }) {
+  const [form, setForm] = useState({ title: '', subject: 'Maths', grade: '', ...defaults });
   const { busy, error, run } = useAction();
   const grades = [...new Set(students.map((s) => s.grade).filter(Boolean))].sort();
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -34,8 +34,8 @@ function NewPaper({ students, onCreated }) {
     });
   };
   return <form className="card form" onSubmit={submit}>
-    <h2 className="card-title"><FilePlus2 size={20}/>New test</h2>
-    <p className="hint">Name it, then add its questions (type them, or upload a spreadsheet or PDF), then give it to students.</p>
+    <h2 className="card-title"><FilePlus2 size={20}/>{heading}</h2>
+    <p className="hint">Name it, then add its questions: type them, or upload a spreadsheet (CSV) or a PDF.</p>
     <label>Test name<input value={form.title} onChange={set('title')} required maxLength={150} placeholder="e.g. Fractions worksheet 3"/></label>
     <div className="grid-2">
       <label>Subject<input value={form.subject} onChange={set('subject')} list="paper-subjects" required maxLength={60}/></label>
@@ -239,8 +239,8 @@ function AttemptBlock({ test, label, reload, now, latest }) {
 }
 
 /** All of one student's attempts at this test, newest first. */
-function ResultGroup({ tests, student, count, reload, now }) {
-  const [open, setOpen] = useState(false);
+export function ResultGroup({ tests, student, count, reload, now, title = null, startOpen = false, onOpenPaper = null }) {
+  const [open, setOpen] = useState(startOpen);
   const [form, setForm] = useState(null); // 'again' | 'dates'
   const { busy, error, run } = useAction();
   const sorted = [...tests].sort((x, y) => x.attempt_no - y.attempt_no);
@@ -269,7 +269,7 @@ function ResultGroup({ tests, student, count, reload, now }) {
 
   return <li className="hw-item">
     <button className="hw-summary" onClick={() => setOpen(!open)} aria-expanded={open}>
-      <span className="hw-main"><strong>{student?.full_name ?? 'Removed student'}</strong>
+      <span className="hw-main"><strong>{title ?? student?.full_name ?? 'Removed student'}</strong>
         <span className="muted small">{sorted.length > 1 ? `Attempt ${latest.attempt_no}` : `open ${dateTimeLabel(latest.opens_at)} → ${dateTimeLabel(latest.closes_at)}`}
           {earlier.length > 0 && ` · earlier: ${earlier.map((a) => `${pct(a)}%`).join(', ')}`}</span></span>
       {la?.exits > 0 && <span className="badge badge-warn" title="Times the student left full screen or switched apps">Left {la.exits}×</span>}
@@ -281,6 +281,7 @@ function ResultGroup({ tests, student, count, reload, now }) {
       <div className="row">
         {la?.finished_at && <button className="btn btn-primary btn-small" onClick={() => setForm(form === 'again' ? null : 'again')}><RotateCcw size={15}/>Give another attempt</button>}
         {(!la || !la.finished_at) && <button className="btn btn-ghost btn-small" onClick={() => setForm(form === 'dates' ? null : 'dates')}><CalendarClock size={15}/>{missed ? 'Reopen (change dates)' : 'Change dates'}</button>}
+        {onOpenPaper && <button className="btn btn-ghost btn-small" onClick={onOpenPaper}><ClipboardList size={15}/>See questions</button>}
         <button className="link-btn danger" onClick={removeAll} disabled={busy}><Trash2 size={15}/>Take test away</button>
       </div>
       {form === 'again' && <WindowForm title={`Attempt ${latest.attempt_no + 1} for ${name}`} submitLabel="Give another attempt" busy={busy} onSubmit={giveAgain} onCancel={() => setForm(null)}
@@ -293,8 +294,8 @@ function ResultGroup({ tests, student, count, reload, now }) {
 }
 
 // ─── Give to students ──────────────────────────────────────────────────────
-function AssignForm({ paper, count, students, assigned, reload }) {
-  const [form, setForm] = useState({ studentIds: [], opens: toInput(Date.now()), closes: toInput(Date.now() + 7 * 86400000) });
+function AssignForm({ paper, count, students, assigned, reload, fixedStudent = null }) {
+  const [form, setForm] = useState({ studentIds: fixedStudent ? [fixedStudent.id] : [], opens: toInput(Date.now()), closes: toInput(Date.now() + 7 * 86400000) });
   const { busy, error, setError, run } = useAction();
   const [saved, setSaved] = useState('');
   const toggle = (id) => setForm((f) => ({ ...f, studentIds: f.studentIds.includes(id) ? f.studentIds.filter((x) => x !== id) : [...f.studentIds, id] }));
@@ -309,17 +310,18 @@ function AssignForm({ paper, count, students, assigned, reload }) {
         student_id: id, paper_id: paper.id, title: paper.title, subject: paper.subject, topics: [], grade: paper.grade,
         question_count: count, opens_at: opens.toISOString(), closes_at: closes.toISOString(), max_exits: 3, monitoring: paper.monitoring ?? false,
       }))));
-      setSaved(`Given to ${form.studentIds.length} student${form.studentIds.length > 1 ? 's' : ''}. They’ll see it in their portal.`);
-      setForm((f) => ({ ...f, studentIds: [] }));
+      setSaved(`Given to ${fixedStudent ? fixedStudent.full_name.split(' ')[0] : `${form.studentIds.length} student${form.studentIds.length > 1 ? 's' : ''}`}. They’ll see it in their portal.`);
+      if (!fixedStudent) setForm((f) => ({ ...f, studentIds: [] }));
       await reload();
     });
   };
   if (!count) return <p className="muted small">Add questions first, then you can give this test to students.</p>;
   if (!students.length) return <p className="muted small">Add a student in the Students tab first.</p>;
+  if (fixedStudent && assigned.has(fixedStudent.id)) return <p className="muted small">{fixedStudent.full_name.split(' ')[0]} already has this test. To let them try again, open their result below and use <strong>Give another attempt</strong>.</p>;
   return <form className="form" onSubmit={submit}>
-    <fieldset className="checks"><legend>Students</legend>
+    {!fixedStudent && <fieldset className="checks"><legend>Students</legend>
       {students.map((s) => <label key={s.id} className={form.studentIds.includes(s.id) ? 'check checked' : 'check'}><input type="checkbox" checked={form.studentIds.includes(s.id)} onChange={() => toggle(s.id)}/>{s.full_name}{assigned.has(s.id) ? ' (has it already)' : ''}</label>)}
-    </fieldset>
+    </fieldset>}
     <div className="grid-2">
       <label>Opens <span className="optional">(your time)</span><input type="datetime-local" value={form.opens} onChange={(e) => setForm((f) => ({ ...f, opens: e.target.value }))} required/></label>
       <label>Closes <span className="optional">(answers shown after)</span><input type="datetime-local" value={form.closes} onChange={(e) => setForm((f) => ({ ...f, closes: e.target.value }))} required/></label>
@@ -327,12 +329,13 @@ function AssignForm({ paper, count, students, assigned, reload }) {
     <p className="hint">All {count} questions, in your order, one at a time with their timers. Leaving full screen 3 times submits the test.</p>
     <Notice>{error}</Notice>
     <Notice kind="success">{saved}</Notice>
-    <button className="btn btn-primary" disabled={busy}><Send size={16}/>{busy ? 'Saving…' : 'Give test'}</button>
+    <button className="btn btn-primary" disabled={busy}><Send size={16}/>{busy ? 'Saving…' : fixedStudent ? `Give to ${fixedStudent.full_name.split(' ')[0]}` : 'Give test'}</button>
   </form>;
 }
 
 // ─── One test ──────────────────────────────────────────────────────────────
-function PaperView({ paper, questions, tests, students, reload, now, onBack, onOpen }) {
+/** With `student`, this is opened from that student's workspace: giving and results are for them only. */
+export function PaperView({ paper, questions, tests, students, reload, now, onBack, onOpen, student = null }) {
   const byId = useMemo(() => Object.fromEntries(students.map((s) => [s.id, s])), [students]);
   const [adding, setAdding] = useState('one'); // 'one' | 'file'
   const [showAdd, setShowAdd] = useState(false);
@@ -344,6 +347,8 @@ function PaperView({ paper, questions, tests, students, reload, now, onBack, onO
   const locked = tests.some((t) => firstOf(t.test_attempts));
   const nextPosition = (questions.at(-1)?.position ?? 0) + 1;
   const givenTo = new Set(tests.map((t) => t.student_id)).size;
+  const shownTests = student ? tests.filter((t) => t.student_id === student.id) : tests;
+  const firstName = student?.full_name.split(' ')[0];
 
   const move = (index, dir) => run(async () => {
     const a = questions[index], b = questions[index + dir];
@@ -361,35 +366,36 @@ function PaperView({ paper, questions, tests, students, reload, now, onBack, onO
   });
   const removePaper = () => { if (confirm(`Delete “${paper.title}”? Its ${questions.length} questions and all ${tests.length} student results will be deleted. This can’t be undone.`)) run(async () => { must(await supabase.from('papers').delete().eq('id', paper.id)); await reload(); onBack(); }); };
 
-  // Once a test has questions, giving it to students is the main next step, so it goes first.
+  // Once a test has questions, giving it is the main next step, so it goes first.
+  // Tests are given from a student's workspace (Students → name → Tests); the library only explains that.
   const giveAndResults = <>
-    <section className="card give-card" id="give-test">
-      <h2 className="card-title"><Send size={20}/>Give this test to students</h2>
-      <AssignForm paper={paper} count={questions.length} students={students} assigned={new Set(tests.map((t) => t.student_id))} reload={reload}/>
-    </section>
-    <section className="card">
+    {student ? <section className="card give-card" id="give-test">
+      <h2 className="card-title"><Send size={20}/>Give this test to {firstName}</h2>
+      <AssignForm paper={paper} count={questions.length} students={students} assigned={new Set(tests.map((t) => t.student_id))} reload={reload} fixedStudent={student}/>
+    </section> : <p className="hint give-hint"><Send size={15}/> To give this test, open a student (<strong>Students</strong> → their name → <strong>Tests</strong> → <strong>Give a test</strong>) and pick it from “Tests you’ve made”.</p>}
+    {!student && <section className="card">
       <h2 className="card-title"><Lightbulb size={20}/>What to reteach</h2>
       <ReteachReport questions={questions} tests={tests}/>
-    </section>
+    </section>}
     <section className="card">
-      <h2 className="card-title"><Check size={20}/>Results</h2>
-      {tests.length ? <ul className="hw-list">{groupAttempts(tests).map((g) => <ResultGroup key={g[0].id} tests={g} student={byId[g[0].student_id]} count={questions.length} reload={reload} now={now}/>)}</ul>
-        : <p className="muted small">Not given to anyone yet.</p>}
+      <h2 className="card-title"><Check size={20}/>{student ? `${firstName}’s result` : 'Results'}</h2>
+      {shownTests.length ? <ul className="hw-list">{groupAttempts(shownTests).map((g) => <ResultGroup key={g[0].id} tests={g} student={byId[g[0].student_id]} count={questions.length} reload={reload} now={now} startOpen={Boolean(student)}/>)}</ul>
+        : <p className="muted small">{student ? `Not given to ${firstName} yet.` : 'Not given to anyone yet.'}</p>}
     </section>
   </>;
 
   return <div className="stack-lg">
     <div className="paper-head">
-      <button className="link-btn" onClick={onBack}><ArrowLeft size={16}/>All tests</button>
+      <button className="link-btn" onClick={onBack}><ArrowLeft size={16}/>{student ? `${firstName}’s tests` : 'All tests'}</button>
       {renaming ? <form className="rename" onSubmit={rename}><input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={150} required aria-label="Test name" autoFocus/><button className="btn btn-primary btn-small" disabled={busy}>Save</button><button type="button" className="link-btn" onClick={() => { setRenaming(false); setTitle(paper.title); }}>Cancel</button></form>
         : <h2 className="paper-title">{paper.title}<button className="icon-btn" onClick={() => setRenaming(true)} aria-label="Rename test" title="Rename"><PenLine size={16}/></button></h2>}
       <p className="muted">{paper.subject}{paper.grade ? ` · ${paper.grade}` : ''} · {questions.length} question{questions.length === 1 ? '' : 's'} · given to {givenTo} student{givenTo === 1 ? "" : "s"}</p>
       <div className="row">
-        {questions.length > 0 && <button className="btn btn-primary btn-small" onClick={() => { const el = document.getElementById('give-test'); el?.scrollIntoView({ behavior: 'smooth', block: 'start' }); el?.querySelector('input')?.focus({ preventScroll: true }); }}><Send size={15}/>Give to students</button>}
+        {student && questions.length > 0 && <button className="btn btn-primary btn-small" onClick={() => { const el = document.getElementById('give-test'); el?.scrollIntoView({ behavior: 'smooth', block: 'start' }); el?.querySelector('input')?.focus({ preventScroll: true }); }}><Send size={15}/>Give to {firstName}</button>}
         <label className="inline-check shuffle-toggle" title="Each student gets the questions in a different random order"><input type="checkbox" checked={paper.shuffle_questions ?? false} disabled={busy} onChange={(e) => run(async () => { must(await supabase.from('papers').update({ shuffle_questions: e.target.checked }).eq('id', paper.id)); await reload(); })}/><Shuffle size={15}/>Shuffle order for each student</label>
         <label className="inline-check shuffle-toggle" title="Students must turn on camera & microphone; nothing is recorded, only flags like ‘face not visible for 20 s’"><input type="checkbox" checked={paper.monitoring ?? false} disabled={busy} onChange={(e) => run(async () => { must(await supabase.from('papers').update({ monitoring: e.target.checked }).eq('id', paper.id)); must(await supabase.from('tests').update({ monitoring: e.target.checked }).eq('paper_id', paper.id)); await reload(); })}/><Video size={15}/>Camera & microphone monitoring</label>
         <button className="btn btn-ghost btn-small" onClick={duplicate} disabled={busy}><Copy size={15}/>Duplicate</button>
-        <button className="btn btn-ghost btn-small danger-text" onClick={removePaper} disabled={busy}><Trash2 size={15}/>Delete test</button>
+        {!student && <button className="btn btn-ghost btn-small danger-text" onClick={removePaper} disabled={busy}><Trash2 size={15}/>Delete test</button>}
       </div>
       <Notice>{error}</Notice>
       <Notice kind="success">{notice}</Notice>
@@ -434,7 +440,7 @@ export default function TestPapers({ papers, questions, tests, students, reload,
   if (paper) return <PaperView key={paper.id} paper={paper} questions={questionsOf(paper.id)} tests={testsOf(paper.id)} students={students} reload={reload} now={now} onBack={() => setOpenId(null)} onOpen={open}/>;
 
   return <div className="split">
-    <NewPaper students={students} onCreated={async (id) => { await reload(); open(id); }}/>
+    <NewPaper students={students} heading="New test for the library" onCreated={async (id) => { await reload(); open(id); }}/>
     <section className="card">
       <h2 className="card-title"><ClipboardList size={20}/>Your tests</h2>
       {papers.length ? <ul className="paper-list">{papers.map((p) => {
