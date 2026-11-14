@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { CalendarClock, CalendarDays, CalendarPlus, ChevronDown, MessageCircle, Repeat, Trash2, Undo2, XCircle } from 'lucide-react';
 import { must, supabase } from './supabase';
 import { Empty, JoinButton, Notice, classState, platformName, useAction } from './shared';
@@ -45,7 +45,8 @@ function WhenPicker({ student, value, onChange }) {
   </div>;
 }
 
-function ScheduleForm({ students, classes, reload }) {
+/** With `fixedStudent`, schedules for that one student (used inside their workspace). */
+export function ScheduleForm({ students, classes, reload, fixedStudent = null }) {
   const [studentId, setStudentId] = useState('');
   const [when, setWhen] = useState({ date: todayIn(localZone), time: '', zone: 'mine' });
   const [minutes, setMinutes] = useState(60);
@@ -66,6 +67,7 @@ function ScheduleForm({ students, classes, reload }) {
     setLink(s?.meeting_url || last?.meeting_url || '');
     if (last) { setMinutes(last.duration_minutes); setSubject(last.subject); }
   };
+  useEffect(() => { if (fixedStudent) chooseStudent(fixedStudent.id); }, [fixedStudent?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const submit = (event) => {
     event.preventDefault();
@@ -92,10 +94,10 @@ function ScheduleForm({ students, classes, reload }) {
   if (!students.length) return <Empty icon={CalendarPlus} title="Add a student first">Go to the Students tab to create a login, then schedule their classes here.</Empty>;
 
   return <form className="card form" onSubmit={submit}>
-    <h2 className="card-title"><CalendarPlus size={20}/>Schedule a class</h2>
-    <div className="student-chips" role="group" aria-label="Student">
+    <h2 className="card-title"><CalendarPlus size={20}/>{fixedStudent ? `Schedule a class for ${first(fixedStudent.full_name)}` : 'Schedule a class'}</h2>
+    {!fixedStudent && <div className="student-chips" role="group" aria-label="Student">
       {students.map((s) => <button type="button" key={s.id} className={studentId === s.id ? 'chip active' : 'chip'} aria-pressed={studentId === s.id} onClick={() => chooseStudent(s.id)}>{s.full_name}</button>)}
-    </div>
+    </div>}
     {student && <>
       <WhenPicker student={student} value={when} onChange={setWhen}/>
       <div className="length-chips" role="group" aria-label="Length">
@@ -169,7 +171,7 @@ function RescheduleForm({ cls, student, onDone, reload }) {
   </form>;
 }
 
-function ClassRow({ cls, student, now, reload }) {
+export function ClassRow({ cls, student, now, reload }) {
   const { busy, error, run } = useAction();
   const [editing, setEditing] = useState(false);
   const state = classState(cls, now);

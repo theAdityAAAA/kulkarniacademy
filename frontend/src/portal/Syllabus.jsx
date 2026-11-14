@@ -149,7 +149,7 @@ function SyllabusBlock({ row, syllabus, statuses, onSet, busyCode, teacher, onRe
 }
 
 /** Loads a student's syllabi, their topic ticks and the syllabus files. Works for the teacher (any student) and a student (themselves). */
-function useStudentSyllabi(studentId) {
+export function useStudentSyllabi(studentId) {
   const [state, setState] = useState(null);
   const [error, setError] = useState('');
   const load = useCallback(async () => {

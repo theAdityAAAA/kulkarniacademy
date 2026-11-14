@@ -6,8 +6,9 @@ import { dateTimeLabel } from './time';
 
 const SUBJECTS = ['Maths', 'Science', 'Physics', 'Chemistry', 'Biology'];
 
-function AssignForm({ students, reload }) {
-  const [form, setForm] = useState({ studentIds: [], subject: 'Maths', title: '', instructions: '', due: '' });
+/** With `fixedStudent`, sets homework for that one student (used inside their workspace). */
+export function AssignForm({ students, reload, fixedStudent = null }) {
+  const [form, setForm] = useState({ studentIds: fixedStudent ? [fixedStudent.id] : [], subject: 'Maths', title: '', instructions: '', due: '' });
   const fileInput = useRef(null);
   const { busy, error, setError, run } = useAction();
   const [saved, setSaved] = useState('');
@@ -44,10 +45,10 @@ function AssignForm({ students, reload }) {
   if (!students.length) return <Empty icon={FilePlus2} title="Add a student first">Create a student login in the Students tab, then set homework here.</Empty>;
 
   return <form className="card form" onSubmit={submit}>
-    <h2 className="card-title"><FilePlus2 size={20}/>Set homework</h2>
-    <fieldset className="checks"><legend>For</legend>
+    <h2 className="card-title"><FilePlus2 size={20}/>{fixedStudent ? `Set homework for ${fixedStudent.full_name.split(' ')[0]}` : 'Set homework'}</h2>
+    {!fixedStudent && <fieldset className="checks"><legend>For</legend>
       {students.map((s) => <label key={s.id} className={form.studentIds.includes(s.id) ? 'check checked' : 'check'}><input type="checkbox" checked={form.studentIds.includes(s.id)} onChange={() => toggle(s.id)}/>{s.full_name}</label>)}
-    </fieldset>
+    </fieldset>}
     <div className="grid-2">
       <label>Subject<input value={form.subject} onChange={set('subject')} list="hw-subject-list" required maxLength={60}/></label>
       <label>Due <span className="optional">(your time, optional)</span><input type="datetime-local" value={form.due} onChange={set('due')}/></label>
@@ -93,8 +94,8 @@ function MarkForm({ hw, reload, onDone }) {
   </form>;
 }
 
-function HomeworkItem({ hw, student, reload }) {
-  const [open, setOpen] = useState(false);
+export function HomeworkItem({ hw, student, reload, startOpen = false }) {
+  const [open, setOpen] = useState(startOpen);
   const [editing, setEditing] = useState(false);
   const { busy, error, run } = useAction();
   const sub = hw.submission;

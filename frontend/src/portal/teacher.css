@@ -1,0 +1,186 @@
+/* ── Teacher app layout: rail · student list · workspace ── */
+.t-app{display:grid;grid-template-columns:78px minmax(0,1fr);height:100dvh;background:var(--bg)}
+.t-main{height:100dvh;overflow:auto;min-width:0}
+
+/* Rail */
+.t-rail{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 0 16px;background:var(--navy);height:100dvh;overflow-y:auto}
+.t-rail-logo{display:grid;place-items:center;width:46px;height:46px;margin-bottom:14px;border-radius:12px;background:#fff}
+.t-rail-logo img{width:auto;height:36px}
+.t-rail-btn{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;width:66px;padding:10px 0 8px;border:0;border-radius:12px;background:none;color:#b8c3d6;font-size:11px;font-weight:600}
+.t-rail-btn:hover{background:#ffffff12;color:#fff}
+.t-rail-btn.active{background:#ffffff1f;color:#fff}
+.t-rail-btn.active::before{content:"";position:absolute;left:-6px;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:#c9b8f2}
+.t-rail-count{position:absolute;top:4px;right:8px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#e8604f;color:#fff;font-size:11px;font-weight:700;line-height:19px}
+.t-rail-spacer{flex:1}
+.t-rail-me{display:grid;place-items:center;width:38px;height:38px;margin-top:8px;border-radius:50%;font-size:13px;font-weight:700}
+
+/* Student list */
+.t-students{display:grid;grid-template-columns:290px minmax(0,1fr);height:100%}
+.t-list{display:flex;flex-direction:column;height:100dvh;background:#f0eee7;border-right:1px solid var(--line)}
+.t-search{display:flex;align-items:center;gap:8px;margin:14px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--muted)}
+.t-search input{flex:1;min-width:0;padding:11px 0;border:0;background:none;outline:none}
+.t-search:focus-within{border-color:var(--purple)}
+.t-list-items{flex:1;overflow-y:auto;list-style:none;margin:0;padding:0 0 8px}
+.t-student{display:flex;align-items:center;gap:12px;width:100%;padding:12px 18px;border:0;background:none;text-align:left}
+.t-student:hover{background:#e8e5dc}
+.t-student.active{background:var(--surface);box-shadow:inset -4px 0 var(--navy)}
+.t-avatar{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:50%;font-size:15px;font-weight:700}
+.t-avatar.big{width:56px;height:56px;font-size:19px}
+.t-student-text{display:grid;min-width:0;flex:1}
+.t-student-name{font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-grade{font-weight:500;color:var(--muted);font-size:14px}
+.t-board{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-dot{flex:none;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#e8604f;color:#fff;font-size:12px;font-weight:700;line-height:22px;text-align:center}
+.t-none{padding:16px 18px}
+.t-list-foot{display:grid;gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
+.t-list-foot select{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.t-list-buttons{display:flex;gap:8px}
+.t-list-buttons .btn{flex:1;justify-content:center}
+.t-list-buttons .btn-ghost.is-on{border-color:var(--purple);color:var(--purple-dark)}
+.t-workspace{height:100dvh;overflow-y:auto;min-width:0}
+.t-workspace > .notice{margin:14px 28px 0}
+.t-add{max-width:600px;margin:28px auto;padding:0 20px}
+
+/* Pages (Today, Calendar, Homework, Tests, Account) */
+.t-page{max-width:1240px;margin:0 auto;padding:28px 32px 64px}
+.t-page-title{font-size:28px;color:var(--navy);margin-bottom:20px}
+.t-account{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
+.t-account > div:nth-child(2){display:grid;flex:1}
+
+/* Workspace */
+.ws{max-width:1060px;margin:0 auto;padding:0 32px 64px}
+.ws-top{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:0 -32px;padding:0 32px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.ws-top-name{font-size:14px;color:var(--muted)}
+.ws-tabs{display:flex;gap:28px}
+.ws-tab{padding:18px 2px 15px;border:0;border-bottom:3px solid transparent;background:none;font-size:16px;font-weight:600;color:var(--ink-soft)}
+.ws-tab:hover{color:var(--navy)}
+.ws-tab.active{color:var(--navy);border-bottom-color:var(--navy)}
+.ws-body{display:grid;gap:30px;padding-top:26px}
+.ws-home{display:grid;gap:30px}
+.ws-label{display:block;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.ws-label.accent{color:var(--purple)}
+
+.ws-banner{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) auto;border:1.5px solid var(--navy);border-radius:14px;overflow:hidden;
+  background-color:var(--surface);background-image:linear-gradient(#ebe8f2 1px,transparent 1px),linear-gradient(90deg,#ebe8f2 1px,transparent 1px);background-size:34px 34px}
+.ws-banner > div{padding:20px 22px}
+.ws-banner > div + div{border-left:1px solid var(--line)}
+.ws-banner-hello{display:flex;align-items:center;gap:16px}
+.ws-banner-avatar{display:grid;place-items:center;flex:none;width:68px;height:68px;border-radius:50%;font-size:24px;font-weight:800;box-shadow:0 0 0 4px var(--surface)}
+.ws-banner-greet{font-family:'Manrope',sans-serif;font-size:22px;color:var(--navy)}
+.ws-banner h1{font-size:28px;font-weight:800;color:var(--navy);letter-spacing:.3px}
+.ws-banner-next{display:flex;flex-direction:column;justify-content:center;gap:4px;align-items:flex-start;background:#fffefaee}
+.ws-banner-next strong{color:var(--navy)}
+.ws-banner-wins{display:flex;align-items:center;gap:10px;background:#fffefaee}
+.ws-win{display:grid;place-items:center;width:54px;height:54px;border-radius:50%;font-weight:800;font-size:15px}
+.ws-win.good{background:var(--green-soft);color:var(--green);box-shadow:inset 0 0 0 2px #2f7a4d55}
+.ws-win.ok{background:var(--amber-soft);color:var(--amber);box-shadow:inset 0 0 0 2px #9a5b0044}
+.ws-win.low{background:var(--red-soft);color:var(--red);box-shadow:inset 0 0 0 2px #b3261e44}
+.ws-win.empty{background:#efeee8;color:var(--muted)}
+.ws-wins-all{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border:0;background:none;color:var(--ink-soft);font-size:12px;font-weight:600}
+.ws-wins-all svg{width:40px;height:40px;padding:9px;border:1.5px solid var(--ink-soft);border-radius:50%}
+.ws-wins-all:hover{color:var(--purple-dark)}
+
+.ws-section-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:12px}
+.ws-section-title{display:flex;align-items:center;gap:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:1.3px;color:var(--ink-soft)}
+.ws-section-title.as-button{padding:0;border:0;background:none}
+.ws-section-actions{display:flex;flex-wrap:wrap;gap:16px}
+.ws-section-actions .link-btn{text-decoration-thickness:2px}
+
+.ws-cards{display:grid;grid-auto-flow:column;grid-auto-columns:228px;gap:14px;overflow-x:auto;padding:2px 2px 10px;scroll-snap-type:x proximity}
+.ws-card{display:flex;flex-direction:column;min-height:158px;padding:0;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;text-align:left;scroll-snap-align:start;transition:transform .12s,box-shadow .12s}
+.ws-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px #1d33521a}
+.ws-card-strip{display:flex;align-items:center;gap:8px;padding:15px 14px;font-size:13px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  background-image:repeating-linear-gradient(135deg,transparent 0 12px,#ffffff66 12px 22px)}
+.tone-maths{background-color:var(--purple-soft);color:var(--purple-dark)}
+.tone-physics{background-color:#e5eefb;color:#2d5596}
+.tone-chemistry{background-color:var(--amber-soft);color:var(--amber)}
+.tone-biology{background-color:var(--green-soft);color:var(--green)}
+.tone-other{background-color:#efeee8;color:var(--ink-soft)}
+.ws-card-body{display:flex;flex-direction:column;justify-content:space-between;gap:10px;flex:1;padding:14px}
+.ws-card-body strong{font-size:16px;line-height:1.35;color:var(--navy)}
+.ws-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ws-card-add{align-items:center;justify-content:center;gap:8px;border:2px dashed var(--line-strong);background:none;color:var(--purple-dark);font-weight:700}
+.ws-card-add:hover{background:var(--purple-soft)}
+.text-warn{color:var(--amber);font-weight:600}
+.badge-danger{background:var(--red-soft);color:var(--red)}
+.ws-quiet{display:flex;align-items:center;gap:6px}
+.ws-review-test{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.ws-review-test > span{display:flex;align-items:center;gap:8px}
+.ws-classes{margin:0}
+
+.ws-goal{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.ws-goal + .ws-goal{margin-top:16px}
+.ws-goal-loading{height:180px;background:linear-gradient(90deg,var(--surface),#f1efe9,var(--surface));background-size:200% 100%;animation:ws-shimmer 1.4s infinite}
+@keyframes ws-shimmer{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.ws-goal-loading{animation:none}}
+.ws-goal-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:22px 24px;background:var(--purple-soft)}
+.ws-goal-head h3{font-size:22px;line-height:1.25;color:var(--navy);margin:2px 0 4px}
+.ws-goal-icon{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--surface);color:var(--navy);box-shadow:0 0 0 1px var(--line)}
+.ws-chapters{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));list-style:none;margin:0;padding:0}
+.ws-chapter{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;height:100%;padding:28px 12px 18px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:none}
+.ws-chapter:hover{background:var(--bg)}
+.ws-chapter-no{position:absolute;top:0;left:0;min-width:26px;padding:3px 8px;background:#efeee8;font-size:13px;font-weight:700;color:var(--ink-soft)}
+.ws-chapter-title{font-size:14px;font-weight:600;line-height:1.3;text-align:center;color:var(--navy)}
+.ring-bg{fill:none;stroke:#ecebe4;stroke-width:6}
+.ring-fg{fill:none;stroke:var(--green);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .4s}
+.ring text{font-size:15px;font-weight:700;fill:var(--navy)}
+.ws-goal-empty{display:flex;align-items:center;gap:14px;width:100%;padding:22px;border:2px dashed var(--line-strong);border-radius:14px;background:var(--surface);color:var(--purple-dark);text-align:left}
+.ws-goal-empty > span{display:grid;gap:2px}
+.ws-goal-empty strong{color:var(--navy)}
+.ws-goal-empty:hover{background:var(--purple-soft)}
+.ws-progress{display:grid;gap:20px}
+
+/* Pop-up sheets */
+.sheet{width:min(660px,calc(100% - 24px));max-height:92dvh;overflow:auto}
+.sheet > .card{border:0;box-shadow:none;padding:0;background:none}
+.sheet-list{margin:0}
+
+/* Phones and small tablets: the rail becomes a bottom bar, the student list a row of avatars. */
+@media(max-width:900px){
+  .t-app{display:block;height:auto}
+  .t-main{height:auto;overflow:visible;padding-bottom:76px}
+  .t-rail{position:fixed;z-index:30;left:0;right:0;bottom:0;flex-direction:row;justify-content:space-around;height:auto;padding:6px 4px calc(6px + env(safe-area-inset-bottom));overflow:visible}
+  .t-rail-logo,.t-rail-spacer,.t-rail-me{display:none}
+  .t-rail-btn{width:auto;flex:1;padding:6px 0;font-size:10px}
+  .t-rail-btn.active::before{left:25%;right:25%;top:-6px;bottom:auto;width:auto;height:3px;border-radius:0 0 3px 3px}
+  .t-students{display:block}
+  .t-list{height:auto;border-right:0;border-bottom:1px solid var(--line)}
+  .t-search{margin:12px 12px 8px}
+  .t-list-items{display:flex;gap:4px;overflow-x:auto;padding:0 8px 8px}
+  .t-list-items > li{flex:none}
+  .t-student{flex-direction:column;gap:4px;width:84px;padding:8px 4px;border-radius:12px;text-align:center}
+  .t-student.active{box-shadow:inset 0 -3px var(--navy)}
+  .t-student-text{width:100%}
+  .t-student-name{font-size:13px}
+  .t-grade{display:block;font-size:12px}
+  .t-board{display:none}
+  .t-dot{position:absolute;margin:0 0 0 30px;transform:translateY(-6px)}
+  .t-student{position:relative}
+  .t-list-foot{grid-template-columns:1fr;padding:8px 12px}
+  .t-workspace{height:auto;overflow:visible}
+  .t-workspace > .notice{margin:12px 14px 0}
+  .ws{padding:0 14px 40px}
+  .ws-top{grid-template-columns:1fr;margin:0 -14px;padding:0 14px}
+  .ws-top-name,.ws-top-spacer{display:none}
+  .ws-tabs{gap:20px;overflow-x:auto}
+  .ws-tab{font-size:15px;padding:14px 2px 12px;white-space:nowrap}
+  .ws-banner{grid-template-columns:1fr}
+  .ws-banner > div + div{border-left:0;border-top:1px solid var(--line)}
+  .ws-banner > div{padding:16px}
+  .ws-goal-head{grid-template-columns:auto minmax(0,1fr);padding:18px}
+  .ws-goal-head > .btn{grid-column:1 / -1;justify-self:start}
+  .ws-goal-icon{width:50px;height:50px}
+  .ws-goal-head h3{font-size:19px}
+  .ws-chapters{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  .ws-cards{grid-auto-columns:200px}
+  .t-page{padding:20px 14px 40px}
+  .t-page-title{font-size:24px}
+}
+
+/* Grid children must be allowed to shrink, or a sideways-scrolling row of cards widens the whole page. */
+.ws-body > *,.ws-home > *,.ws-section,.ws-progress > *,.ws-banner > div{min-width:0}
+.ws-banner p{overflow-wrap:anywhere}
+.t-rail-logo img{height:40px}
+.sheet{padding-top:58px}
+.ws-win{flex:none}
+.ws-profile .card-title{margin-bottom:12px}

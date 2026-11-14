@@ -111,6 +111,15 @@ function Shell({ profile, children }) {
   </>;
 }
 
+/** The teacher gets a full-screen app layout (rail + student list + workspace) instead of the student header. */
+function TeacherApp({ profile }) {
+  const [changing, setChanging] = useState(false);
+  return <>
+    <SafetyNet><Suspense fallback={<Spinner/>}><Teacher profile={profile} onChangePassword={() => setChanging(true)}/></Suspense></SafetyNet>
+    {changing && <ChangePassword onClose={() => setChanging(false)}/>}
+  </>;
+}
+
 function App() {
   const [session, setSession] = useState(undefined);
   const [profile, setProfile] = useState(undefined);
@@ -134,7 +143,8 @@ function App() {
   if (!profile) {
     return <main className="login-page"><div className="login-card"><Brand/><h1>Almost there.</h1><p className="muted">Your login works, but your student account hasn’t been set up yet. Please message your teacher.</p><button className="btn btn-ghost btn-wide" onClick={() => supabase.auth.signOut()}><LogOut size={16}/>Sign out</button></div></main>;
   }
-  return <Shell profile={profile}><SafetyNet><Suspense fallback={<Spinner/>}>{profile.role === 'teacher' ? <Teacher profile={profile}/> : <Student profile={profile} onProfileChange={(changes) => setProfile((p) => ({ ...p, ...changes }))}/>}</Suspense></SafetyNet></Shell>;
+  if (profile.role === 'teacher') return <TeacherApp profile={profile}/>;
+  return <Shell profile={profile}><SafetyNet><Suspense fallback={<Spinner/>}><Student profile={profile} onProfileChange={(changes) => setProfile((p) => ({ ...p, ...changes }))}/></Suspense></SafetyNet></Shell>;
 }
 
 /** If anything unexpected goes wrong while drawing a screen, show a friendly card instead of a blank page. */
