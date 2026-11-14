@@ -5,7 +5,8 @@ import { Empty, JoinButton, Notice, classState, platformName, useAction } from '
 import { addDays, dateTimeLabel, dayKey, dayLabel, localZone, placeName, timeLabel, zonedToDate } from './time';
 
 const SUBJECTS = ['Maths', 'Science', 'Physics', 'Chemistry', 'Biology'];
-const LENGTHS = [30, 45, 60, 90];
+const LENGTHS = [30, 45, 55, 60, 90];
+const DEFAULT_LENGTH = 55; // a standard class is 55 minutes
 
 // "YYYY-MM-DD" for today in a time zone, and friendly labels for the next days.
 const ymdIn = (date, zone) => new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
@@ -19,9 +20,18 @@ const first = (name) => name.split(' ')[0];
 /** Message for the student/parent with the time in THEIR zone. */
 function whatsappText(student, start, minutes, link, moved) {
   const when = `${dateTimeLabel(start, student.timezone)} (${placeName(student.timezone)} time)`;
+  const join = `Join from the student portal: ${location.origin}/portal/${link ? `\n(Backup link: ${link})` : ''}`;
   return moved
-    ? `Hi ${first(student.full_name)}! Our class has moved to ${when}, ${minutes} minutes. Same link: ${link}\nYou can also join from the student portal.`
-    : `Hi ${first(student.full_name)}! Your next class is on ${when}, ${minutes} minutes.\nJoin here: ${link}\nYou can also join from the student portal.`;
+    ? `Hi ${first(student.full_name)}! Our class has moved to ${when}, ${minutes} minutes.\n${join}`
+    : `Hi ${first(student.full_name)}! Your next class is on ${when}, ${minutes} minutes.\n${join}`;
+}
+
+/** An optional backup link: '' → null; otherwise it must be a full https:// address. */
+function backupLink(value) {
+  const text = value.trim();
+  if (!text) return { url: null };
+  try { const url = new URL(text); return url.protocol === 'https:' ? { url: url.href } : { error: 'The backup link must start with https://' }; }
+  catch { return { error: 'Paste the full Zoom or Google Meet link, starting with https:// (or leave it empty).' }; }
 }
 
 /** Day chips + time input + "whose time" switch, with a live preview of both times. */
@@ -49,7 +59,7 @@ function WhenPicker({ student, value, onChange }) {
 export function ScheduleForm({ students, classes, reload, fixedStudent = null }) {
   const [studentId, setStudentId] = useState('');
   const [when, setWhen] = useState({ date: todayIn(localZone), time: '', zone: 'mine' });
-  const [minutes, setMinutes] = useState(60);
+  const [minutes, setMinutes] = useState(DEFAULT_LENGTH);
   const [subject, setSubject] = useState('Maths');
   const [topic, setTopic] = useState('');
   const [link, setLink] = useState('');
@@ -73,19 +83,18 @@ export function ScheduleForm({ students, classes, reload, fixedStudent = null })
     event.preventDefault();
     if (!student) { setError('Choose a student.'); return; }
     if (!when.date || !when.time) { setError('Choose a day and type a time.'); return; }
-    let url;
-    try { url = new URL(link.trim()); } catch { setError('Paste the full Zoom or Google Meet link, starting with https://'); return; }
-    if (url.protocol !== 'https:') { setError('The class link must start with https://'); return; }
+    const backup = backupLink(link);
+    if (backup.error) { setError(backup.error); return; }
     const zone = when.zone === 'student' ? student.timezone : localZone;
     const rows = Array.from({ length: Number(weeks) }, (_, i) => ({
-      student_id: student.id, subject: subject.trim(), topic: topic.trim() || null, duration_minutes: Number(minutes), meeting_url: url.href,
+      student_id: student.id, subject: subject.trim(), topic: topic.trim() || null, duration_minutes: Number(minutes), meeting_url: backup.url,
       starts_at: zonedToDate(addDays(`${when.date}T${when.time}`, 7 * i), zone).toISOString(),
     }));
     if (new Date(rows[0].starts_at).getTime() < Date.now() - 5 * 60000 && !confirm('That time is in the past. Schedule it anyway?')) return;
     run(async () => {
       must(await supabase.from('classes').insert(rows));
-      if (saveLink && url.href !== student.meeting_url) must(await supabase.from('profiles').update({ meeting_url: url.href }).eq('id', student.id));
-      setDone({ student, start: new Date(rows[0].starts_at), minutes: Number(minutes), link: url.href, count: rows.length });
+      if (saveLink && backup.url && backup.url !== student.meeting_url) must(await supabase.from('profiles').update({ meeting_url: backup.url }).eq('id', student.id));
+      setDone({ student, start: new Date(rows[0].starts_at), minutes: Number(minutes), link: backup.url, count: rows.length });
       setTopic(''); setWhen((w) => ({ ...w, time: '' })); setWeeks(1);
       await reload();
     });
@@ -109,7 +118,8 @@ export function ScheduleForm({ students, classes, reload, fixedStudent = null })
         <label>Topic <span className="optional">(optional)</span><input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Quadratic equations" maxLength={200}/></label>
       </div>
       <datalist id="subject-list">{SUBJECTS.map((s) => <option key={s} value={s}/>)}</datalist>
-      <label>Zoom / Meet link<input type="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://…" required maxLength={500}/></label>
+      <label>Backup Zoom / Meet link <span className="optional">(optional)</span><input type="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://… (only if you want a backup)" maxLength={500}/></label>
+      <p className="hint">The class happens live in the portal: you and {first(student.full_name)} both press <strong>Join class</strong>. A Zoom or Meet link is only shown as a backup.</p>
       {link && link !== student.meeting_url && <label className="inline-check small"><input type="checkbox" checked={saveLink} onChange={(e) => setSaveLink(e.target.checked)}/>Remember this as {first(student.full_name)}’s usual link</label>}
       <button type="button" className="link-btn" onClick={() => setMore(!more)} aria-expanded={more}><ChevronDown size={15} className={more ? 'chev open' : 'chev'}/>More options</button>
       {more && <label className="inset"><span className="label-icon"><Repeat size={15}/>Repeat at the same time every week</span>
@@ -119,7 +129,7 @@ export function ScheduleForm({ students, classes, reload, fixedStudent = null })
     </>}
     {done && <div className="done-box">
       <strong>{done.count > 1 ? `${done.count} weekly classes scheduled` : 'Class scheduled'} for {done.student.full_name}.</strong>
-      <span className="muted small">They’ll see it in their portal with a Join button.</span>
+      <span className="muted small">They’ll see it in their portal with a <strong>Join class</strong> button.</span>
       <a className="btn btn-ghost btn-small" href={`https://wa.me/?text=${encodeURIComponent(whatsappText(done.student, done.start, done.minutes, done.link, false))}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={16}/>Send details on WhatsApp</a>
     </div>}
   </form>;
@@ -129,24 +139,24 @@ function RescheduleForm({ cls, student, onDone, reload }) {
   const start = new Date(cls.starts_at);
   const [when, setWhen] = useState({ date: ymdIn(start, localZone), time: hhmmIn(start, localZone), zone: 'mine' });
   const [minutes, setMinutes] = useState(cls.duration_minutes);
-  const [link, setLink] = useState(cls.meeting_url);
+  const [link, setLink] = useState(cls.meeting_url ?? '');
   const [topic, setTopic] = useState(cls.topic ?? '');
   const [saved, setSaved] = useState(null);
   const { busy, error, setError, run } = useAction();
   const save = (event) => {
     event.preventDefault();
-    let url;
-    try { url = new URL(link.trim()); } catch { setError('The class link must be a full https:// link.'); return; }
+    const backup = backupLink(link ?? '');
+    if (backup.error) { setError(backup.error); return; }
     const zone = when.zone === 'student' && student ? student.timezone : localZone;
     const newStart = zonedToDate(`${when.date}T${when.time}`, zone);
     const moved = newStart.getTime() !== start.getTime();
     if (moved && newStart.getTime() < Date.now() - 5 * 60000 && !confirm('That time is in the past. Move the class there anyway?')) return;
     run(async () => {
       must(await supabase.from('classes').update({
-        starts_at: newStart.toISOString(), duration_minutes: Number(minutes), meeting_url: url.href, topic: topic.trim() || null, status: 'scheduled',
+        starts_at: newStart.toISOString(), duration_minutes: Number(minutes), meeting_url: backup.url, topic: topic.trim() || null, status: 'scheduled',
         ...(moved && !cls.rescheduled_from ? { rescheduled_from: cls.starts_at } : {}),
       }).eq('id', cls.id));
-      setSaved({ start: newStart, moved, link: url.href });
+      setSaved({ start: newStart, moved, link: backup.url });
       await reload();
     });
   };
@@ -164,11 +174,21 @@ function RescheduleForm({ cls, student, onDone, reload }) {
     </div>
     <div className="grid-2">
       <label>Topic <span className="optional">(optional)</span><input value={topic} onChange={(e) => setTopic(e.target.value)} maxLength={200}/></label>
-      <label>Link<input type="url" value={link} onChange={(e) => setLink(e.target.value)} required maxLength={500}/></label>
+      <label>Backup link <span className="optional">(optional)</span><input type="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://…" maxLength={500}/></label>
     </div>
     <Notice>{error}</Notice>
     <div className="row"><button className="btn btn-primary btn-small" disabled={busy}>{busy ? 'Saving…' : 'Save changes'}</button><button type="button" className="link-btn" onClick={onDone}>Cancel</button></div>
   </form>;
+}
+
+/** Who was in the portal's class room, and for how long (from live_heartbeat). */
+function Attendance({ cls, student, state }) {
+  if (!cls.attendance || state === 'later' || state === 'soon' || cls.status === 'cancelled') return null;
+  const theirs = cls.attendance.find((a) => a.user_id === cls.student_id);
+  const minutes = theirs ? Math.max(1, Math.round(theirs.seconds / 60)) : 0;
+  if (theirs) return <span className="badge badge-success attendance">{first(student?.full_name ?? 'Student')} was in class {minutes} min · joined {timeLabel(theirs.first_joined_at)}</span>;
+  if (state === 'ended' && !cls.meeting_url) return <span className="badge badge-warn attendance">{first(student?.full_name ?? 'Student')} didn’t join</span>;
+  return null;
 }
 
 export function ClassRow({ cls, student, now, reload }) {
@@ -184,6 +204,7 @@ export function ClassRow({ cls, student, now, reload }) {
       {cls.topic && <span>{cls.topic}</span>}
       {student && <span className="muted small">{timeLabel(cls.starts_at, student.timezone)} for them in {placeName(student.timezone)} · {platformName(cls.meeting_url)}</span>}
       {cls.rescheduled_from && <span className="badge badge-accent moved">Moved from {dateTimeLabel(cls.rescheduled_from)}</span>}
+      <Attendance cls={cls} student={student} state={state}/>
       {error && <span className="error-text">{error}</span>}
     </div>
     <div className="class-actions">

@@ -178,7 +178,7 @@ export default function Student({ profile, onProfileChange = () => {}, onChangeP
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
   }, [load, runningTest]);
-  useEffect(() => { const on = () => setView(readView()); window.addEventListener('hashchange', on); return () => window.removeEventListener('hashchange', on); }, []);
+  useEffect(() => { const on = () => { if (!location.hash.startsWith('#live/')) setView(readView()); }; window.addEventListener('hashchange', on); return () => window.removeEventListener('hashchange', on); }, []);
   // Opening a homework card from Home: scroll to it on the Homework page and highlight it briefly.
   useEffect(() => {
     if (view !== 'homework' || !focusHw) return undefined;

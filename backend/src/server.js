@@ -80,7 +80,8 @@ function readJson(request, maxBytes = 10_000) {
 
 const JWT_SHAPE = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
 
-async function requireTeacher(request) {
+/** Any signed-in teacher or student. Returns { user, role }. */
+async function requireUser(request) {
   if (!admin) throw new HttpError(503, 'The backend has no Supabase keys. Check backend/.env, then restart the backend.');
   const badKey = `badLogin:${clientIp(request)}`;
   const wait = blocked(badKey, LIMITS.badLogin.limit);
@@ -98,8 +99,44 @@ async function requireTeacher(request) {
     throw new HttpError(401, 'Your session has expired. Please sign in again.');
   }
   const { data: profile } = await admin.from('profiles').select('role').eq('id', data.user.id).maybeSingle();
-  if (profile?.role !== 'teacher') throw new HttpError(403, 'Only the teacher can do this.');
-  return data.user;
+  if (!profile) throw new HttpError(403, 'Your account isn’t set up yet. Please message your teacher.');
+  return { user: data.user, role: profile.role };
+}
+
+async function requireTeacher(request) {
+  const { user, role } = await requireUser(request);
+  if (role !== 'teacher') throw new HttpError(403, 'Only the teacher can do this.');
+  return user;
+}
+
+// ─── Live classes: connection helpers for the video call ─────────────────
+// Video goes directly between the two browsers. STUN (free) lets them find each other; on strict
+// networks (some schools/offices) a TURN relay carries the video instead. TURN uses Cloudflare when
+// CLOUDFLARE_TURN_KEY_ID and CLOUDFLARE_TURN_API_TOKEN are set; credentials expire after a few hours.
+const STUN_ONLY = [{ urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302'] }];
+async function iceServers() {
+  const keyId = process.env.CLOUDFLARE_TURN_KEY_ID;
+  const token = process.env.CLOUDFLARE_TURN_API_TOKEN;
+  if (!keyId || !token || !/^[A-Za-z0-9_-]{8,128}$/.test(keyId)) return { iceServers: STUN_ONLY, relay: false };
+  try {
+    const response = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${keyId}/credentials/generate-ice-servers`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ttl: 6 * 3600 }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) throw new Error(`Cloudflare TURN answered ${response.status}`);
+    const json = await response.json();
+    const list = Array.isArray(json.iceServers) ? json.iceServers : json.iceServers ? [json.iceServers] : [];
+    // Browsers block port 53, and trying it only slows the connection down.
+    const servers = list.map((s) => ({ ...s, urls: [].concat(s.urls).filter((u) => typeof u === 'string' && !/:53(\?|$)/.test(u)) }))
+      .filter((s) => s.urls.length);
+    if (!servers.length) throw new Error('Cloudflare TURN returned no servers');
+    return { iceServers: servers, relay: true };
+  } catch (error) {
+    console.error('TURN credentials failed, using STUN only:', String(error.message).slice(0, 200));
+    return { iceServers: STUN_ONLY, relay: false };
+  }
 }
 
 async function requireStudent(id) {
@@ -167,6 +204,7 @@ async function importFromFile(body) {
 
 const routes = [
   { method: 'GET', path: /^\/api\/health$/, handler: async () => ({ status: 'ok', service: 'kulkarni-academy-api', supabase: Boolean(admin), ai_import: Boolean(process.env.ANTHROPIC_API_KEY) }) },
+  { method: 'GET', path: /^\/api\/live\/ice-servers$/, handler: async (req) => { await requireUser(req); return iceServers(); } },
   { method: 'POST', path: /^\/api\/admin\/import-questions$/, handler: async (req) => { await requireTeacher(req); limit(req, 'import'); return importFromFile(await readJson(req)); } },
   { method: 'GET', path: /^\/api\/admin\/logins$/, handler: async (req) => { await requireTeacher(req); return listLogins(); } },
   {

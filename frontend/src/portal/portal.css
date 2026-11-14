@@ -269,3 +269,7 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
   .syl-item.is-sub{padding-left:14px}
   .syl-status-label{display:none}
 }
+/* Join button + optional backup link, attendance from the portal's class room */
+.join-group{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.join-backup{font-size:13px;font-weight:600;color:var(--purple-dark);text-decoration:underline;text-underline-offset:3px}
+.badge.attendance{white-space:normal}

@@ -12,6 +12,7 @@ export function useNow(intervalMs = 30000) {
 }
 
 export function platformName(url) {
+  if (!url) return 'Live class in the portal';
   try {
     const host = new URL(url).hostname;
     if (host.endsWith('zoom.us')) return 'Zoom';
@@ -31,14 +32,29 @@ export function classState(cls, now) {
   return 'later';
 }
 
+/** Opens the live class room (LiveClass, shown on top of the portal) for a class. */
+export function openLiveClass(classId) {
+  history.pushState({ live: true }, '', `#live/${classId}`);
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+}
+
+const TEACHER_EARLY_MINUTES = 30;  // the class room opens this early for the teacher (see 010_live_classes.sql)
+const ROOM_STAYS_OPEN_MINUTES = 60; // and stays open this long after the class should have ended
+
 export function JoinButton({ cls, now, teacher = false }) {
   const state = classState(cls, now);
-  const label = `Join on ${platformName(cls.meeting_url)}`;
+  const start = new Date(cls.starts_at).getTime();
+  const end = start + cls.duration_minutes * 60000;
+  const backup = cls.meeting_url && <a className="join-backup" href={cls.meeting_url} target="_blank" rel="noopener noreferrer">{platformName(cls.meeting_url)} backup</a>;
   if (state === 'cancelled') return <span className="badge badge-muted">Cancelled</span>;
-  if (state === 'ended') return <span className="badge badge-muted">Finished</span>;
-  if (state === 'live' || teacher) {
-    return <a className={state === 'live' ? 'btn btn-primary' : 'btn btn-ghost'} href={cls.meeting_url} target="_blank" rel="noopener noreferrer"><Video size={17}/>{teacher && state !== 'live' ? `Open ${platformName(cls.meeting_url)} link` : label}</a>;
+  if (state === 'ended') {
+    // The room stays open a while after the class, so anyone who dropped out can get back in.
+    if (now <= end + ROOM_STAYS_OPEN_MINUTES * 60000) return <span className="join-group"><button className="btn btn-ghost" onClick={() => openLiveClass(cls.id)}><Video size={17}/>Rejoin class</button>{backup}</span>;
+    return <span className="badge badge-muted">Finished</span>;
   }
+  const open = teacher ? now >= start - TEACHER_EARLY_MINUTES * 60000 : state === 'live';
+  if (open) return <span className="join-group"><button className="btn btn-primary" onClick={() => openLiveClass(cls.id)}><Video size={17}/>Join class</button>{backup}</span>;
+  if (teacher) return <span className="join-group"><span className="join-locked" title={`The class room opens ${TEACHER_EARLY_MINUTES} minutes before class`}><Video size={16}/>Room opens {TEACHER_EARLY_MINUTES} min before</span>{backup}</span>;
   return <span className="join-locked" title={`The button turns on ${JOIN_EARLY_MINUTES} minutes before class`}><Video size={16}/>Join opens {JOIN_EARLY_MINUTES} min before</span>;
 }
 

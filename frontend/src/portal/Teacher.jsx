@@ -110,7 +110,7 @@ export default function Teacher({ profile, onChangePassword = () => {} }) {
     try {
       const since = new Date(Date.now() - 14 * 86400000).toISOString();
       const optional = (query) => query.then(({ data: rows, error: e }) => (e ? null : rows));
-      const [students, classes, homework, papers, questions, tests] = await Promise.all([
+      const [students, classes, homework, papers, questions, tests, attendance] = await Promise.all([
         supabase.from('profiles').select('*').eq('role', 'student').order('full_name').then(must),
         supabase.from('classes').select('*').gte('starts_at', since).order('starts_at').then(must),
         supabase.from('homework').select('*, submissions(*)').order('created_at', { ascending: false }).limit(500).then(must),
@@ -118,8 +118,13 @@ export default function Teacher({ profile, onChangePassword = () => {} }) {
         optional(supabase.from('papers').select('*').order('created_at', { ascending: false })),
         optional(supabase.from('questions').select('*').order('position').limit(5000)),
         optional(supabase.from('tests').select('*, test_attempts(*)').order('opens_at', { ascending: false }).limit(1000)),
+        // Live-class attendance needs supabase/010_live_classes.sql; without it, classes simply show no attendance.
+        optional(supabase.from('class_attendance').select('class_id, user_id, seconds, first_joined_at, last_seen_at').gte('first_joined_at', since)),
       ]);
-      setData({ students, classes, papers: papers ?? [], questions: questions ?? [], tests: tests ?? [], testsReady: papers !== null && questions !== null && tests !== null, homework: homework.map((h) => ({ ...h, submission: firstOf(h.submissions) })) });
+      const byClass = new Map();
+      for (const a of attendance ?? []) { if (!byClass.has(a.class_id)) byClass.set(a.class_id, []); byClass.get(a.class_id).push(a); }
+      const withAttendance = classes.map((c) => ({ ...c, attendance: attendance ? byClass.get(c.id) ?? [] : null }));
+      setData({ students, classes: withAttendance, papers: papers ?? [], questions: questions ?? [], tests: tests ?? [], testsReady: papers !== null && questions !== null && tests !== null, homework: homework.map((h) => ({ ...h, submission: firstOf(h.submissions) })) });
       setError('');
     } catch (err) {
       setError(`Couldn’t load your data: ${err.message}`);
@@ -154,7 +159,7 @@ export default function Teacher({ profile, onChangePassword = () => {} }) {
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
   }, [load]);
-  useEffect(() => { const on = () => { setAdding(false); setRoute(readHash()); }; window.addEventListener('hashchange', on); return () => window.removeEventListener('hashchange', on); }, []);
+  useEffect(() => { const on = () => { if (location.hash.startsWith('#live/')) return; setAdding(false); setRoute(readHash()); }; window.addEventListener('hashchange', on); return () => window.removeEventListener('hashchange', on); }, []);
 
   const navigate = (next) => {
     const r = { ...route, ...next };

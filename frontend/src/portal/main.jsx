@@ -5,6 +5,7 @@ import { configured, friendlyError, supabase } from './supabase';
 import { Notice, Spinner, useAction } from './shared';
 const Teacher = lazy(() => import('./Teacher'));
 const Student = lazy(() => import('./Student'));
+const LiveClass = lazy(() => import('./LiveClass'));
 import './portal.css';
 import './tests.css';
 
@@ -102,7 +103,25 @@ function AppFrame({ children }) {
   </>;
 }
 
+/** "#live/<class id>" opens that class room on top of the portal. */
+const liveIdFromHash = () => location.hash.match(/^#live\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/)?.[1] ?? null;
+function useLiveRoute() {
+  const [id, setId] = useState(liveIdFromHash);
+  useEffect(() => {
+    const on = () => setId(liveIdFromHash());
+    window.addEventListener('hashchange', on); window.addEventListener('popstate', on);
+    return () => { window.removeEventListener('hashchange', on); window.removeEventListener('popstate', on); };
+  }, []);
+  return id;
+}
+function closeLive() {
+  if (history.state?.live) { history.back(); return; }
+  history.replaceState(null, '', location.pathname + location.search); // opened directly (e.g. after a refresh)
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+}
+
 function App() {
+  const liveId = useLiveRoute();
   const [session, setSession] = useState(undefined);
   const [profile, setProfile] = useState(undefined);
   const userId = session?.user?.id;
@@ -125,8 +144,9 @@ function App() {
   if (!profile) {
     return <main className="login-page"><div className="login-card"><Brand/><h1>Almost there.</h1><p className="muted">Your login works, but your student account hasn’t been set up yet. Please message your teacher.</p><button className="btn btn-ghost btn-wide" onClick={() => supabase.auth.signOut()}><LogOut size={16}/>Sign out</button></div></main>;
   }
-  if (profile.role === 'teacher') return <AppFrame>{(changePassword) => <Teacher profile={profile} onChangePassword={changePassword}/>}</AppFrame>;
-  return <AppFrame>{(changePassword) => <Student profile={profile} onChangePassword={changePassword} onProfileChange={(changes) => setProfile((p) => ({ ...p, ...changes }))}/>}</AppFrame>;
+  const live = liveId && <SafetyNet><Suspense fallback={<div className="live"/>}><LiveClass key={liveId} classId={liveId} profile={profile} onClose={closeLive}/></Suspense></SafetyNet>;
+  if (profile.role === 'teacher') return <><AppFrame>{(changePassword) => <Teacher profile={profile} onChangePassword={changePassword}/>}</AppFrame>{live}</>;
+  return <><AppFrame>{(changePassword) => <Student profile={profile} onChangePassword={changePassword} onProfileChange={(changes) => setProfile((p) => ({ ...p, ...changes }))}/>}</AppFrame>{live}</>;
 }
 
 /** If anything unexpected goes wrong while drawing a screen, show a friendly card instead of a blank page. */
