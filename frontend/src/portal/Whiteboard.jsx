@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Download, Eraser, ImageOff, PenLine, Trash2, Undo2, X } from 'lucide-react';
+import { Download, Eraser, Grid3x3, ImageOff, PenLine, Trash2, Undo2, X } from 'lucide-react';
 
 // Shared whiteboard for the live class. Both people can draw; the teacher can clear it.
 // Everything is in "board units" (0–1 across, 0–1 down on a 16:9 board) so it lines up on any screen.
@@ -45,6 +45,7 @@ const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChan
   const bg = useRef(null);             // { src, img } or null
   const drawing = useRef(null);        // the stroke I'm drawing now
   const outbox = useRef([]);           // points not yet sent
+  const grid = useRef(false);          // squared paper (for graphs and geometry)
   const [tool, setTool] = useState({ color: COLORS[0], size: 'thin', erase: false });
   const [, setVersion] = useState(0);  // redraw the toolbar when undo/clear availability changes
   const bump = () => setVersion((v) => v + 1);
@@ -59,6 +60,17 @@ const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChan
     const c = bgCanvas.current; if (!c) return;
     const ctx = c.getContext('2d');
     ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+    if (grid.current) {
+      // 32 squares across; every 4th line a little darker, like maths exercise-book paper.
+      const step = c.width / 32;
+      ctx.lineWidth = Math.max(1, c.width / 1600);
+      for (let i = 1; i * step < Math.max(c.width, c.height); i++) {
+        ctx.strokeStyle = i % 4 === 0 ? '#b9c6dd' : '#e1e7f1';
+        const p = Math.round(i * step) + 0.5;
+        if (p < c.width) { ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, c.height); ctx.stroke(); }
+        if (p < c.height) { ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(c.width, p); ctx.stroke(); }
+      }
+    }
     const img = bg.current?.img;
     if (img?.complete && img.naturalWidth) {
       const scale = Math.min(c.width / img.naturalWidth, c.height / img.naturalHeight);
@@ -72,7 +84,9 @@ const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChan
     const el = wrap.current; if (!el) return undefined;
     const resize = () => {
       const r = el.getBoundingClientRect(); const dpr = Math.min(2, window.devicePixelRatio || 1);
-      for (const c of [bgCanvas.current, inkCanvas.current]) { c.width = Math.max(1, Math.round(r.width * dpr)); c.height = Math.max(1, Math.round(r.height * dpr)); }
+      const canvases = [bgCanvas.current, inkCanvas.current];
+      if (canvases.some((c) => !c)) return; // the class room is closing
+      for (const c of canvases) { c.width = Math.max(1, Math.round(r.width * dpr)); c.height = Math.max(1, Math.round(r.height * dpr)); }
       redrawBg(); redrawInk();
     };
     const ro = new ResizeObserver(resize); ro.observe(el); resize();
@@ -97,6 +111,8 @@ const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChan
     redrawInk(); bump();
   };
   const clearAll = () => { strokes.current = []; byId.current.clear(); redrawInk(); bump(); };
+  const setGridLocal = (on) => { grid.current = Boolean(on); redrawBg(); bump(); };
+  const toggleGrid = () => { setGridLocal(!grid.current); send({ t: 'b-grid', on: grid.current }); };
 
   // ── Sending what I draw (batched) ──
   useEffect(() => {
@@ -163,10 +179,12 @@ const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChan
       } else if (msg.t === 'b-undo' && okId(msg.id)) removeStroke(msg.id);
       else if (msg.t === 'b-clear' && role === 'student') clearAll();
       else if (msg.t === 'b-bg' && okImage(msg.img)) setBackgroundLocal(msg.img);
+      else if (msg.t === 'b-grid') setGridLocal(msg.on === true);
       else if (msg.t === 'b-sync' && role === 'student' && Array.isArray(msg.strokes) && okImage(msg.bg)) {
         // The teacher's copy is the full picture (it includes what I drew before reconnecting).
         strokes.current = []; byId.current.clear();
         for (const s of msg.strokes.slice(0, MAX_STROKES)) if (okStroke(s)) addStroke({ ...s, erase: Boolean(s.erase) });
+        grid.current = msg.grid === true;
         setBackgroundLocal(msg.bg); redrawInk(); bump();
         onOpenChange(Boolean(msg.open), false);
       }
@@ -174,7 +192,7 @@ const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChan
     /** Teacher: send the whole board to a (re)connected student. */
     syncTo(isOpen) {
       if (role !== 'teacher') return;
-      send({ t: 'b-sync', open: isOpen, bg: bg.current?.src ?? null, strokes: strokes.current.map(({ id, by, color, size, erase, pts }) => ({ id, by, color, size, erase, pts })) });
+      send({ t: 'b-sync', open: isOpen, grid: grid.current, bg: bg.current?.src ?? null, strokes: strokes.current.map(({ id, by, color, size, erase, pts }) => ({ id, by, color, size, erase, pts })) });
     },
     /** Put a picture (e.g. the student's shared screen) behind the drawing, for both. */
     setBackground(src) { setBackgroundLocal(src); send({ t: 'b-bg', img: src }); },
@@ -190,6 +208,7 @@ const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChan
       <button className={`wb-tool ${!tool.erase && tool.size === 'thick' ? 'on' : ''}`} onClick={() => setTool((t) => ({ ...t, size: 'thick', erase: false }))} title="Thick pen"><PenLine size={19}/>Thick</button>
       <button className={`wb-tool ${tool.erase ? 'on' : ''}`} onClick={() => setTool((t) => ({ ...t, erase: true }))} title="Eraser"><Eraser size={17}/>Eraser</button>
       <button className="wb-tool" onClick={undo} disabled={!canUndo} title="Undo your last line"><Undo2 size={17}/>Undo</button>
+      <button className={`wb-tool ${grid.current ? 'on' : ''}`} onClick={toggleGrid} title="Squared paper, for graphs and geometry (for both)" aria-pressed={grid.current}><Grid3x3 size={17}/>Grid</button>
       {role === 'teacher' && <button className="wb-tool" onClick={clear} title="Clear the drawing for both"><Trash2 size={17}/>Clear</button>}
       {role === 'teacher' && bg.current && <button className="wb-tool" onClick={removePicture} title="Remove the picture behind the drawing"><ImageOff size={17}/>Picture</button>}
       <button className="wb-tool" onClick={save} title="Save the board as a picture"><Download size={17}/>Save</button>

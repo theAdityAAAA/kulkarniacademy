@@ -163,3 +163,8 @@ body.live-open{overflow:hidden}
   .live-room.board-open .live-self{top:auto;bottom:0;right:auto;left:140px;width:120px;aspect-ratio:16/10;display:grid}
   .live-explain{top:auto;bottom:14px;right:50%;transform:translateX(50%)}
 }
+
+/* Time's up: the teacher's "End class for both" glows gently (nothing happens automatically) */
+.live-end.is-due{border-color:#e8604f;color:#ffd0c9;animation:live-due 2s ease-in-out infinite}
+@keyframes live-due{50%{box-shadow:0 0 0 6px #e8604f33}}
+@media(prefers-reduced-motion:reduce){.live-end.is-due{animation:none}}

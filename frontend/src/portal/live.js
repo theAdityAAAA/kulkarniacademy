@@ -17,6 +17,7 @@ export const STUN_ONLY = [{ urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l
 const KINDS = ['audio', 'video'];
 const DISCONNECT_GRACE_MS = 4000; // a short "disconnected" often fixes itself
 const TROUBLE_AFTER_MS = 25000;   // not connected for this long: suggest the backup link
+const GONE_AFTER_MS = 8000;       // the other person vanished from the room (battery died, Wi-Fi dropped)
 const CHUNK = 15000;            // characters per data-channel message
 const MAX_ASSEMBLED = 8_000_000; // refuse anything bigger than ~8 MB of text
 const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
@@ -30,10 +31,11 @@ export class LiveSession {
    * @param {RTCIceServer[]} o.iceServers
    * @param {object} o.on  callbacks: status(s), peer(p|null), remoteStream(stream), peerMedia(m), chat(msg), quality(q), replaced()
    */
-  constructor({ supabase, classId, me, iceServers, on }) {
+  constructor({ supabase, classId, me, iceServers, on, clockOffset = 0 }) {
     Object.assign(this, { supabase, classId, me, iceServers: iceServers?.length ? iceServers : STUN_ONLY, on });
     this.sessionId = newId();
-    this.joinedAt = Date.now();
+    // Join time on the SERVER's clock, so a phone whose clock is wrong can't look "newer" than it is.
+    this.joinedAt = Date.now() + (Number.isFinite(clockOffset) ? clockOffset : 0);
     this.local = { audio: null, video: null };
     this.media = { mic: true, cam: true, screen: false };
     this.peer = null;          // { sessionId, userId, role, name, joinedAt }
@@ -47,6 +49,7 @@ export class LiveSession {
     this.restarts = 0;
     this.dc = null;
     this.incoming = new Map(); // chunked data-channel messages being put back together
+    this.departed = new Set(); // sessions that said goodbye or closed their page: never call them again
   }
 
   // ── Room (Realtime channel) ────────────────────────────────────────────
@@ -61,8 +64,15 @@ export class LiveSession {
     channel.on('broadcast', { event: 'signal' }, ({ payload }) => this.onSignal(payload).catch((e) => this.report('signal', e)));
     channel.on('broadcast', { event: 'media' }, ({ payload }) => { if (payload?.from === this.peer?.sessionId) this.on.peerMedia?.(payload.media); });
     channel.on('broadcast', { event: 'chat' }, ({ payload }) => { if (payload && payload.from !== this.sessionId) this.on.chat?.(sanitizeChat(payload)); });
-    channel.on('broadcast', { event: 'bye' }, ({ payload }) => { if (payload?.from && payload.from === this.peer?.sessionId) this.peerLeft(); });
-    channel.on('broadcast', { event: 'end' }, ({ payload }) => { if (payload?.from && payload.from === this.peer?.sessionId && this.me.role === 'student') this.on.ended?.(); });
+    channel.on('broadcast', { event: 'bye' }, ({ payload }) => {
+      if (!payload?.from) return;
+      this.departed.add(payload.from);
+      if (payload.from === this.peer?.sessionId) this.peerLeft();
+    });
+    // "Class ended" may arrive just after the call itself closed, so also accept it from a teacher who just left.
+    channel.on('broadcast', { event: 'end' }, ({ payload }) => {
+      if (payload?.from && this.me.role === 'student' && (payload.from === this.peer?.sessionId || this.departed.has(payload.from))) this.on.ended?.();
+    });
     return new Promise((resolve, reject) => {
       channel.subscribe(async (status, error) => {
         if (this.closed) return;
@@ -70,7 +80,8 @@ export class LiveSession {
           const first = !this.everSubscribed;
           this.everSubscribed = true;
           await channel.track(this.presenceMeta());
-          this.send('hello', { ...this.presenceMeta(), reply: false });
+          // "fresh" = this device has just joined: any older tab/device of the same person hands over to it.
+          this.send('hello', { ...this.presenceMeta(), reply: false, fresh: first });
           this.on.status?.(this.peer ? (this.isConnected() ? 'connected' : 'connecting') : 'waiting');
           if (first) resolve();
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
@@ -94,18 +105,29 @@ export class LiveSession {
     const metas = Object.values(this.channel.presenceState()).flat();
     // The same person joined from another tab or device more recently: hand over to it.
     if (metas.some((m) => m.userId === this.me.userId && m.sessionId !== this.sessionId && m.joinedAt > this.joinedAt)) { this.replacedElsewhere(); return; }
-    const peer = metas.filter((m) => m.role !== this.me.role && m.sessionId).sort((a, b) => b.joinedAt - a.joinedAt)[0];
-    if (peer) this.setPeer(peer);
-    // Presence can drop during a network blip while the video is still fine, so only treat the
-    // peer as gone if the call isn't connected (an explicit "bye" is handled immediately).
-    else if (this.peer && !this.isConnected()) this.peerLeft();
+    // A closed page can linger in the room's list for a few seconds: skip anyone who has already left.
+    const peer = metas.filter((m) => m.role !== this.me.role && m.sessionId && !this.departed.has(m.sessionId)).sort((a, b) => b.joinedAt - a.joinedAt)[0];
+    clearTimeout(this.goneTimer); this.goneTimer = null;
+    if (peer) { this.setPeer(peer); return; }
+    if (!this.peer) return;
+    // An explicit "bye" is handled immediately. Without one, the other person may just have had a short
+    // network blip (their video can even still be flowing), so wait a few seconds before calling them gone.
+    if (!this.isConnected()) { this.peerLeft(); return; }
+    const gone = this.peer.sessionId;
+    this.goneTimer = setTimeout(() => {
+      if (this.closed || this.peer?.sessionId !== gone || !this.channel) return;
+      const still = Object.values(this.channel.presenceState()).flat().some((m) => m.sessionId === gone);
+      if (!still) this.peerLeft();
+    }, GONE_AFTER_MS);
   }
 
   onHello(meta) {
-    if (!meta?.sessionId || meta.role === this.me.role || this.closed) {
-      if (meta?.userId === this.me.userId && meta.sessionId !== this.sessionId && meta.joinedAt > this.joinedAt) this.replacedElsewhere();
+    if (!meta?.sessionId || this.closed) return;
+    if (meta.userId === this.me.userId) {
+      if (meta.sessionId !== this.sessionId && (meta.fresh || meta.joinedAt > this.joinedAt)) this.replacedElsewhere();
       return;
     }
+    if (meta.role === this.me.role || this.departed.has(meta.sessionId)) return;
     this.setPeer(meta);
     if (!meta.reply) this.send('hello', { ...this.presenceMeta(), reply: true });
   }
@@ -280,7 +302,7 @@ export class LiveSession {
   nudge() {
     if (this.closed) return;
     if (this.peer && this.pc && !this.isConnected()) this.restartIce();
-    if (this.channel && this.everSubscribed) this.send('hello', { ...this.presenceMeta(), reply: false });
+    if (this.channel && this.everSubscribed) this.send('hello', { ...this.presenceMeta(), reply: false, fresh: false });
   }
 
   // ── Data channel (whiteboard) ──────────────────────────────────────────
@@ -288,6 +310,14 @@ export class LiveSession {
     this.dc = dc;
     dc.onopen = () => { if (this.dc === dc) this.on.dataOpen?.(); };
     dc.onmessage = (e) => { if (this.dc === dc) this.onData(e.data); };
+    // The other side closed the call (closed or refreshed their page): this arrives within about a
+    // second, much sooner than the room notices. If the network is the problem instead, the call isn't
+    // "connected" any more and the normal reconnect logic handles it.
+    dc.onclose = () => {
+      if (this.dc !== dc || this.closed || !this.peer || !this.isConnected()) return;
+      this.departed.add(this.peer.sessionId);
+      this.peerLeft();
+    };
   }
 
   dataReady() { return this.dc?.readyState === 'open'; }
@@ -319,6 +349,7 @@ export class LiveSession {
       this.incoming.delete(id);
       try { msg = JSON.parse(entry.parts.join('')); } catch { return; }
     }
+    if (msg?.t === '_end') { if (this.me.role === 'student') this.on.ended?.(); return; }
     if (msg && typeof msg === 'object' && typeof msg.t === 'string') this.on.data?.(msg);
   }
 
@@ -401,24 +432,26 @@ export class LiveSession {
   /** Teacher: end the class for both (the student sees "Your teacher ended the class"). */
   endForBoth() {
     if (this.me.role !== 'teacher') return;
-    this.send('end', {});
-    this.leave();
+    this.sendData({ t: '_end' }); // fastest: over the call itself
+    this.send('end', {});         // backup: through the room
+    this.leave({ delayMs: 400 }); // keep the call open a moment so both get through
   }
 
-  leave({ quiet = false } = {}) {
+  leave({ quiet = false, delayMs = 0 } = {}) {
     if (this.closed) return;
     if (!quiet) this.send('bye', {});
     this.closed = true;
-    clearInterval(this.qualityTimer); clearTimeout(this.troubleTimer);
+    clearInterval(this.qualityTimer); clearTimeout(this.troubleTimer); clearTimeout(this.goneTimer);
     this.timers.forEach(clearTimeout); this.timers.clear();
-    if (this.pc) { try { this.pc.close(); } catch { /* fine */ } }
-    this.pc = null;
-    const channel = this.channel;
-    this.channel = null;
-    if (channel) {
+    const pc = this.pc, dc = this.dc, channel = this.channel;
+    this.pc = null; this.dc = null; this.channel = null;
+    const finish = () => {
+      if (dc) { try { dc.close(); } catch { /* fine */ } }
+      if (pc) { try { pc.close(); } catch { /* fine */ } }
       // Give the "bye" a moment to go out before closing the room connection.
-      setTimeout(() => { channel.untrack().catch(() => {}).finally(() => this.supabase.removeChannel(channel)); }, quiet ? 0 : 150);
-    }
+      if (channel) setTimeout(() => { channel.untrack().catch(() => {}).finally(() => this.supabase.removeChannel(channel)); }, quiet ? 0 : 150);
+    };
+    if (delayMs) setTimeout(finish, delayMs); else finish();
   }
 
   report(where, error) {

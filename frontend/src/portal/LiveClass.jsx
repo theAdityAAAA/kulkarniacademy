@@ -12,7 +12,8 @@ import './live.css';
 // Opened from any Join button as #live/<class id>, on top of the rest of the portal.
 
 const isMobile = () => /android|iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const canShareScreen = () => Boolean(navigator.mediaDevices?.getDisplayMedia) && !isMobile();
+// Phones and tablets can't share their screen from a browser; a computer has a mouse/trackpad ("fine" pointer).
+const canShareScreen = () => Boolean(navigator.mediaDevices?.getDisplayMedia) && !isMobile() && (window.matchMedia?.('(any-pointer: fine)').matches ?? true);
 const AUDIO = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
 const videoConstraints = (deviceId, facingMode = 'user') => (deviceId ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } } : { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } });
 
@@ -150,6 +151,7 @@ function Lobby({ info, peerName, onJoin, onBack }) {
       <h1>Ready to join?</h1>
       <p className="live-muted">{timeLabel(c.starts_at)} · {c.duration_minutes} minutes with {peerName}</p>
       {media?.problem && <div className={`live-note ${media.problem.kind === 'partial' ? '' : 'warn'}`}><AlertTriangle size={17}/><span>{media.problem.text}</span></div>}
+      {info.role === 'student' && !canShareScreen() && <div className="live-note"><MonitorUp size={17}/><span>On a phone or tablet you can’t share your screen. If you’ll be solving questions on IXL or Khan Academy, join from a laptop or computer.</span></div>}
       {(devices.video.length > 1 || devices.audio.length > 1) && <div className="live-devices">
         {devices.video.length > 1 && <label>Camera<select value={chosen.videoId} onChange={choose('videoId')}><option value="">Default camera</option>{devices.video.map((d, i) => <option key={d.deviceId} value={d.deviceId}>{d.label || `Camera ${i + 1}`}</option>)}</select></label>}
         {devices.audio.length > 1 && <label>Microphone<select value={chosen.audioId} onChange={choose('audioId')}><option value="">Default microphone</option>{devices.audio.map((d, i) => <option key={d.deviceId} value={d.deviceId}>{d.label || `Microphone ${i + 1}`}</option>)}</select></label>}
@@ -198,10 +200,13 @@ function Room({ info, me, peerName, iceServers, start, onLeft, onReplaced, onEnd
   const flash = (text) => { setToast(text); setTimeout(() => setToast((t) => (t === text ? '' : t)), 4000); };
   const stopAll = () => { Object.values(tracks.current).forEach((t) => t?.stop()); tracks.current = { audio: null, video: null, screen: null }; };
 
+  // While in the class, the Back button / swipe-back asks before leaving (see useLiveRoute in main.jsx).
+  useEffect(() => { window.__kaInClass = c.id; return () => { if (window.__kaInClass === c.id) window.__kaInClass = null; }; }, [c.id]);
+
   // Join the room once.
   useEffect(() => {
     const s = new LiveSession({
-      supabase, classId: c.id, iceServers,
+      supabase, classId: c.id, iceServers, clockOffset,
       me: { userId: me.id, role: info.role, name: me.full_name },
       on: {
         status: setStatus,
@@ -255,14 +260,19 @@ function Room({ info, me, peerName, iceServers, start, onLeft, onReplaced, onEnd
     const onVisible = () => { if (document.visibilityState === 'visible') { getLock(); session.current?.nudge(); } };
     const onOnline = () => session.current?.nudge();
     const onBeforeUnload = (e) => { e.preventDefault(); e.returnValue = ''; };
+    // Closing or refreshing the page: say goodbye so the other person sees "Waiting…" straight away
+    // instead of a frozen picture.
+    const onPageHide = () => session.current?.leave();
     document.addEventListener('visibilitychange', onVisible);
     window.addEventListener('online', onOnline);
     window.addEventListener('beforeunload', onBeforeUnload);
+    window.addEventListener('pagehide', onPageHide);
     return () => {
       lock?.release().catch(() => {});
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('online', onOnline);
       window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('pagehide', onPageHide);
     };
   }, []);
 
@@ -445,7 +455,7 @@ function Room({ info, me, peerName, iceServers, start, onLeft, onReplaced, onEnd
       <button className={`live-round ${boardOpen ? 'active' : ''}`} onClick={() => setBoard(!boardOpen, true)} aria-label={boardOpen ? 'Close whiteboard' : 'Open whiteboard'} title={boardOpen ? 'Close the whiteboard for both' : 'Open the whiteboard for both'}><Presentation size={22}/><span>Board</span></button>
       <button className={`live-round ${chatOpen ? 'active' : ''}`} onClick={openChat} aria-label="Chat" title="Chat"><MessageSquare size={22}/><span>Chat</span>{unread > 0 && <span className="live-badge">{unread}</span>}</button>
       <button className="live-round leave" onClick={leave} aria-label="Leave class" title="Leave class"><PhoneOff size={22}/><span>Leave</span></button>
-      {info.role === 'teacher' && peerHere && <button className="live-btn ghost small live-end" onClick={endForBoth}>End class for both</button>}
+      {info.role === 'teacher' && peerHere && <button className={`live-btn ghost small live-end ${time.level === 'over' ? 'is-due' : ''}`} onClick={endForBoth} title={time.level === 'over' ? 'Class time is over' : 'End the class for you and the student'}>End class for both</button>}
     </footer>
   </div>;
 }

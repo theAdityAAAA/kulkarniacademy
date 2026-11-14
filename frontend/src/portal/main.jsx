@@ -108,9 +108,17 @@ const liveIdFromHash = () => location.hash.match(/^#live\/([0-9a-f]{8}-[0-9a-f]{
 function useLiveRoute() {
   const [id, setId] = useState(liveIdFromHash);
   useEffect(() => {
-    const on = () => setId(liveIdFromHash());
-    window.addEventListener('hashchange', on); window.addEventListener('popstate', on);
-    return () => { window.removeEventListener('hashchange', on); window.removeEventListener('popstate', on); };
+    const on = () => {
+      const next = liveIdFromHash();
+      // Back button / swipe-back during a class: ask first, and stay in the class if they say no.
+      if (!next && window.__kaInClass && !confirm('Leave the class?')) {
+        history.pushState({ live: true }, '', `#live/${window.__kaInClass}`);
+        return;
+      }
+      setId(next);
+    };
+    window.addEventListener('hashchange', on);
+    return () => window.removeEventListener('hashchange', on);
   }, []);
   return id;
 }
