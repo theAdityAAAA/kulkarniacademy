@@ -10,7 +10,8 @@ const SIZES = { thin: 3, thick: 7 };
 const ERASER = 22;
 const MAX_STROKES = 4000;
 const MAX_POINTS = 20000; // per stroke (x and y each count)
-const SEND_EVERY_MS = 40;
+const SEND_EVERY_MS = 40;       // over the direct connection
+const SEND_EVERY_MS_ROOM = 150; // through the room (when video can't connect): fewer, bigger batches
 const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
 const okNum = (n) => typeof n === 'number' && Number.isFinite(n) && n > -0.2 && n < 1.2;
 const okId = (id) => typeof id === 'string' && id.length > 0 && id.length <= 64;
@@ -36,7 +37,7 @@ function drawStroke(ctx, s, w, h, from = 0) {
   ctx.restore();
 }
 
-const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChange, peerName }, ref) {
+const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChange, peerName, slow = false }, ref) {
   const wrap = useRef(null);
   const bgCanvas = useRef(null);
   const inkCanvas = useRef(null);
@@ -120,9 +121,9 @@ const Whiteboard = forwardRef(function Whiteboard({ role, send, open, onOpenChan
       const d = drawing.current;
       if (!d || !outbox.current.length) return;
       send({ t: 'b-pts', id: d.id, pts: outbox.current.splice(0) });
-    }, SEND_EVERY_MS);
+    }, slow ? SEND_EVERY_MS_ROOM : SEND_EVERY_MS);
     return () => clearInterval(id);
-  }, [send]);
+  }, [send, slow]);
 
   const point = (e) => { const r = inkCanvas.current.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
   const down = (e) => {

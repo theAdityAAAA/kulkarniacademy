@@ -165,7 +165,7 @@ function Lobby({ info, peerName, onJoin, onBack }) {
 }
 
 // ─── In the class ─────────────────────────────────────────────────────────
-function Room({ info, me, peerName, iceServers, start, onLeft, onReplaced, onEnded, clockOffset }) {
+function Room({ info, me, peerName, iceServers, relayOn, start, onLeft, onReplaced, onEnded, clockOffset }) {
   const [status, setStatus] = useState('starting');
   const [error, setError] = useState('');
   const [remote, setRemote] = useState(null);
@@ -390,10 +390,11 @@ function Room({ info, me, peerName, iceServers, start, onLeft, onReplaced, onEnd
   const time = timeChip(info, now);
   const remoteHasVideo = Boolean(remote?.getVideoTracks().some((t) => t.readyState === 'live' && !t.muted)) && (peerMedia?.cam !== false || peerMedia?.screen);
   const statusText = error ? null
-    : status === 'waiting' || (!peerHere && status !== 'starting') ? `Waiting for ${peerName} to join…`
-    : status === 'connecting' || status === 'starting' ? `Connecting to ${peerName}…`
+    : status === 'starting' ? 'Opening the class room…'
+    : status === 'waiting' || !peerHere ? `Waiting for ${peerName} to join…`
+    : status === 'connecting' ? `Connecting to ${peerName}…`
     : status === 'reconnecting' ? 'Connection lost. Reconnecting…'
-    : status === 'trouble' ? `Can’t connect to ${peerName}.` : null;
+    : status === 'trouble' ? 'Video can’t connect.' : null;
   const reminder = info.role === 'teacher' && `Hi ${first(peerName)}! Our ${c.subject} class has started. Join from the student portal: ${location.origin}/portal/`;
 
   return <div className={`live-room ${chatOpen ? 'with-chat' : ''} ${boardOpen ? 'board-open' : ''}`}>
@@ -405,14 +406,19 @@ function Room({ info, me, peerName, iceServers, start, onLeft, onReplaced, onEnd
     </header>
 
     <main className="live-stage">
-      <Whiteboard ref={board} role={info.role} send={sendBoard} open={boardOpen} onOpenChange={setBoard} peerName={first(peerName)}/>
+      <Whiteboard ref={board} role={info.role} send={sendBoard} open={boardOpen} onOpenChange={setBoard} peerName={first(peerName)} slow={Boolean(session.current?.usingRoomForData())}/>
       <div className="live-remote">
         <VideoEl stream={remote} muted={false} className={`live-remote-video ${remoteHasVideo ? '' : 'hidden'}`} onPlayBlocked={() => setNeedSound(true)}/>
         {!remoteHasVideo && <div className="live-avatar-wrap">
           <span className="live-avatar" style={avatarTone(peerName)}>{initials(peerName)}</span>
           <strong>{peerName}</strong>
           {statusText ? <span className="live-muted">{statusText}</span> : <span className="live-muted">Camera is off</span>}
-          {status === 'trouble' && <div className="live-note warn"><WifiOff size={17}/><span>Ask {first(peerName)} to refresh the page.{c.meeting_url ? ' If it still doesn’t work, use the backup link.' : ''}</span></div>}
+          {status === 'trouble' && <div className="live-note warn"><WifiOff size={17}/><span>
+            Your two internet connections can’t link up for video (this often happens on mobile data or school Wi-Fi). <strong>Chat and the whiteboard still work.</strong>{' '}
+            {info.role === 'teacher'
+              ? (relayOn ? `Ask ${first(peerName)} to refresh the page or switch to another network.` : 'To fix this for everyone, switch on the free video relay (Cloudflare TURN keys in Vercel).')
+              : 'Try Wi-Fi instead of mobile data, or refresh the page.'}
+            {c.meeting_url ? ' You can also use the backup link.' : ''}</span></div>}
           {status === 'trouble' && <div className="live-row">
             <button className="live-btn ghost" onClick={() => session.current?.nudge()}><RefreshCw size={16}/>Try again</button>
             {c.meeting_url && <a className="live-btn ghost" href={c.meeting_url} target="_blank" rel="noopener noreferrer"><ExternalLink size={16}/>{platformName(c.meeting_url)} backup</a>}
@@ -467,6 +473,7 @@ export default function LiveClass({ classId, profile, onClose }) {
   const [phase, setPhase] = useState('loading'); // loading | closed | lobby | room | left | replaced | ended
   const [start, setStart] = useState(null);
   const [ice, setIce] = useState(STUN_ONLY);
+  const [relayOn, setRelayOn] = useState(false);
   const [round, setRound] = useState(0);
 
   const load = useCallback(async () => {
@@ -478,6 +485,7 @@ export default function LiveClass({ classId, profile, onClose }) {
       ]);
       if (error) throw new Error(/live_join|function|schema cache/i.test(error.message) ? 'Live classes aren’t switched on yet. Your teacher needs to run supabase/010_live_classes.sql.' : friendlyError(error.message));
       if (iceResult?.iceServers?.length) setIce(iceResult.iceServers);
+      setRelayOn(iceResult?.relay === true);
       setInfo(data);
       setPhase(data.state === 'open' ? 'lobby' : 'closed');
     } catch (e) {
@@ -511,7 +519,7 @@ export default function LiveClass({ classId, profile, onClose }) {
       : info.state === 'cancelled' ? <><AlertTriangle size={30}/><h1>This class was cancelled</h1><p>Check the portal for your next class.</p><button className="live-btn primary" onClick={onClose}>Back to the portal</button></>
       : <><Clock size={30}/><h1>This class has ended</h1><p>The class room closes an hour after the class finishes.</p><button className="live-btn primary" onClick={onClose}>Back to the portal</button></>);
   } else if (phase === 'lobby') body = <Lobby info={info} peerName={peerName} onBack={onClose} onJoin={(s) => { setStart(s); setRound((r) => r + 1); setPhase('room'); }}/>;
-  else if (phase === 'room') body = <Room key={round} info={info} me={profile} peerName={peerName} iceServers={ice} start={start} clockOffset={offset}
+  else if (phase === 'room') body = <Room key={round} info={info} me={profile} peerName={peerName} iceServers={ice} relayOn={relayOn} start={start} clockOffset={offset}
     onLeft={() => setPhase('left')} onReplaced={() => setPhase('replaced')} onEnded={() => setPhase('ended')}/>;
   else if (phase === 'left') body = center(<><PhoneOff size={30}/><h1>You left the class</h1><p>{c.subject} with {peerName}</p><div className="live-row"><button className="live-btn ghost" onClick={load}><RefreshCw size={16}/>Rejoin</button><button className="live-btn primary" onClick={onClose}>Back to the portal</button></div></>);
   else if (phase === 'ended') body = center(<><PhoneOff size={30}/><h1>Your teacher ended the class</h1><p>Well done today! Your homework and next class are in the portal.</p><button className="live-btn primary" onClick={onClose}>Back to the portal</button></>);

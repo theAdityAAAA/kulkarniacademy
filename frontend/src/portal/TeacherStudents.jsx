@@ -3,7 +3,7 @@ import { Copy, HardDrive, MessageCircle, Trash2, UserPlus, Wand2 } from 'lucide-
 import { BoardGradeFields } from './boards';
 import { api } from './supabase';
 import { Notice, useAction } from './shared';
-import { commonZones, otherZones } from './time';
+import { commonZones, otherZones, zoneLabel } from './time';
 
 const portalUrl = `${location.origin}/portal/`;
 
@@ -15,7 +15,7 @@ export function generatePassword() {
 
 export function ZoneSelect({ value, onChange }) {
   return <select value={value} onChange={onChange} required>
-    <optgroup label="Common">{commonZones.map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}</optgroup>
+    <optgroup label="Common">{commonZones.map((z) => <option key={z} value={z}>{zoneLabel(z)}</option>)}</optgroup>
     <optgroup label="All time zones">{otherZones.map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}</optgroup>
   </select>;
 }

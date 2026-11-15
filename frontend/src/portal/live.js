@@ -16,7 +16,8 @@
 export const STUN_ONLY = [{ urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302'] }];
 const KINDS = ['audio', 'video'];
 const DISCONNECT_GRACE_MS = 4000; // a short "disconnected" often fixes itself
-const TROUBLE_AFTER_MS = 25000;   // not connected for this long: suggest the backup link
+const TROUBLE_AFTER_MS = 15000;   // not connected for this long: explain and suggest the backup link
+const ROOM_SPACING_MS = 120;      // when the whiteboard goes through the room (Supabase), pace big messages
 const GONE_AFTER_MS = 8000;       // the other person vanished from the room (battery died, Wi-Fi dropped)
 const CHUNK = 15000;            // characters per data-channel message
 const MAX_ASSEMBLED = 8_000_000; // refuse anything bigger than ~8 MB of text
@@ -50,6 +51,8 @@ export class LiveSession {
     this.dc = null;
     this.incoming = new Map(); // chunked data-channel messages being put back together
     this.departed = new Set(); // sessions that said goodbye or closed their page: never call them again
+    this.everConnected = false;  // has the current call ever connected? ("lost" vs "can't connect")
+    this.roomQueue = Promise.resolve();
   }
 
   // ── Room (Realtime channel) ────────────────────────────────────────────
@@ -63,6 +66,10 @@ export class LiveSession {
     channel.on('broadcast', { event: 'hello' }, ({ payload }) => this.onHello(payload));
     channel.on('broadcast', { event: 'signal' }, ({ payload }) => this.onSignal(payload).catch((e) => this.report('signal', e)));
     channel.on('broadcast', { event: 'media' }, ({ payload }) => { if (payload?.from === this.peer?.sessionId) this.on.peerMedia?.(payload.media); });
+    // Whiteboard messages that couldn't go directly (the video call can't connect) come through the room.
+    channel.on('broadcast', { event: 'data' }, ({ payload }) => {
+      if (payload?.to === this.sessionId && payload.from === this.peer?.sessionId && typeof payload.d === 'string') this.onData(payload.d);
+    });
     channel.on('broadcast', { event: 'chat' }, ({ payload }) => { if (payload && payload.from !== this.sessionId) this.on.chat?.(sanitizeChat(payload)); });
     channel.on('broadcast', { event: 'bye' }, ({ payload }) => {
       if (!payload?.from) return;
@@ -139,7 +146,12 @@ export class LiveSession {
     this.on.peer?.(this.peer);
     this.resetCall();
     this.on.status?.('connecting');
-    if (this.me.role === 'teacher') this.call().catch((e) => this.report('call', e));
+    if (this.me.role === 'teacher') {
+      this.call().catch((e) => this.report('call', e));
+      // If the direct connection doesn't open soon, send the whiteboard through the room instead.
+      const sid = meta.sessionId;
+      this.later(() => { if (this.peer?.sessionId === sid && !this.dataReady()) this.on.dataOpen?.(); }, 3000);
+    }
     this.armTrouble();
   }
 
@@ -168,6 +180,7 @@ export class LiveSession {
     this.callId = null;
     this.pendingCandidates = [];
     this.restarts = 0;
+    this.everConnected = false;
     this.on.remoteStream?.(null);
     this.on.quality?.(null);
   }
@@ -266,15 +279,17 @@ export class LiveSession {
     if (this.isConnected()) {
       clearTimeout(this.troubleTimer); this.troubleTimer = null;
       this.restarts = 0;
+      this.everConnected = true;
       this.on.status?.('connected');
       this.sendMediaState();
       this.startQuality();
     } else if (ice === 'disconnected') {
-      this.on.status?.('reconnecting');
+      this.on.status?.(this.everConnected ? 'reconnecting' : 'connecting');
       this.later(() => { if (this.pc === pc && pc.iceConnectionState === 'disconnected') this.restartIce(); }, DISCONNECT_GRACE_MS);
       this.armTrouble();
     } else if (ice === 'failed' || pc.connectionState === 'failed') {
-      this.on.status?.('reconnecting');
+      // Never connected at all = the two networks can't link directly (needs the relay): say so now.
+      this.on.status?.(this.everConnected ? 'reconnecting' : 'trouble');
       this.restartIce();
       this.armTrouble();
     }
@@ -321,17 +336,24 @@ export class LiveSession {
   }
 
   dataReady() { return this.dc?.readyState === 'open'; }
+  /** True when whiteboard messages are going through the room because the direct connection isn't open. */
+  usingRoomForData() { return !this.dataReady() && Boolean(this.peer && this.channel); }
 
-  /** Sends an object to the other person over the call. Returns false if the call isn't ready. */
+  /** Sends an object to the other person: directly over the call, or through the room if the call can't connect. */
   sendData(obj) {
-    if (!this.dataReady()) return false;
     const text = JSON.stringify(obj);
-    try {
-      if (text.length <= CHUNK) { this.dc.send(text); return true; }
-      const id = newId(), n = Math.ceil(text.length / CHUNK);
-      for (let i = 0; i < n; i++) this.dc.send(JSON.stringify({ t: '_chunk', id, i, n, d: text.slice(i * CHUNK, (i + 1) * CHUNK) }));
-      return true;
-    } catch (error) { this.report('sendData', error); return false; }
+    const parts = [];
+    if (text.length <= CHUNK) parts.push(text);
+    else { const id = newId(), n = Math.ceil(text.length / CHUNK); for (let i = 0; i < n; i++) parts.push(JSON.stringify({ t: '_chunk', id, i, n, d: text.slice(i * CHUNK, (i + 1) * CHUNK) })); }
+    if (this.dataReady()) {
+      try { for (const p of parts) this.dc.send(p); return true; } catch (error) { this.report('sendData', error); }
+    }
+    if (!this.peer || !this.channel || this.closed) return false;
+    const to = this.peer.sessionId;
+    if (parts.length === 1) { this.send('data', { to, d: parts[0] }); return true; }
+    // Big messages (a picture) go in paced pieces so the room doesn't drop them.
+    for (const p of parts) this.roomQueue = this.roomQueue.then(() => new Promise((r) => { this.send('data', { to, d: p }); setTimeout(r, ROOM_SPACING_MS); }));
+    return true;
   }
 
   onData(raw) {

@@ -53,5 +53,14 @@ export function addDays(localValue, days) {
 const common = ['Europe/London', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'Asia/Singapore', 'Asia/Dubai', 'Asia/Kolkata', 'Australia/Sydney', 'Europe/Berlin', 'Asia/Hong_Kong', 'Africa/Johannesburg'];
 const all = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : common;
 export const commonZones = common;
+// Friendly names for the common zones, so "CST" or "UK time" is easy to find in the list.
+const friendly = {
+  'Europe/London': 'UK (GMT/BST)', 'America/New_York': 'US Eastern (EST/EDT)', 'America/Chicago': 'US Central (CST/CDT)',
+  'America/Denver': 'US Mountain (MST/MDT)', 'America/Los_Angeles': 'US Pacific (PST/PDT)', 'Asia/Singapore': 'Singapore (SGT)',
+  'Asia/Dubai': 'UAE (GST)', 'Asia/Kolkata': 'India (IST)', 'Australia/Sydney': 'Australia Eastern (AEST/AEDT)',
+  'Europe/Berlin': 'Central Europe (CET/CEST)', 'Asia/Hong_Kong': 'Hong Kong (HKT)', 'Africa/Johannesburg': 'South Africa (SAST)',
+};
+/** Label for a time zone in the dropdowns, e.g. "US Central (CST/CDT) — America/Chicago". */
+export const zoneLabel = (zone) => (friendly[zone] ? `${friendly[zone]} — ${zone.replace(/_/g, ' ')}` : zone.replace(/_/g, ' '));
 export const otherZones = all.filter((zone) => !common.includes(zone));
 export const isValidZone = (zone) => { try { new Intl.DateTimeFormat('en', { timeZone: zone }); return true; } catch { return false; } };
