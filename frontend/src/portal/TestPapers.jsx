@@ -156,7 +156,7 @@ function ReteachReport({ questions, tests }) {
 }
 
 // ─── Camera & microphone monitoring ────────────────────────────────────────
-const FLAG_LABEL = { no_face: 'Face not visible', multiple_faces: 'More than one person in view', camera_off: 'Camera turned off', talking: 'Talking heard', mic_off: 'Microphone turned off' };
+const FLAG_LABEL = { phone: 'Phone seen in front of the camera', no_face: 'Face not visible', multiple_faces: 'More than one person in view', camera_off: 'Camera turned off', talking: 'Talking heard', mic_off: 'Microphone turned off' };
 const flagCount = (a) => Object.values(a?.monitor_summary ?? {}).reduce((s, n) => s + Number(n || 0), 0);
 
 function MonitorReport({ attempt }) {

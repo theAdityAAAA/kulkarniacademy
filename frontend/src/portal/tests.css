@@ -373,3 +373,10 @@
 
 /* Safety net */
 .safety-net{margin:40px auto}
+
+/* Serious camera warnings (phone, another person): red, pulsing banner + red screen edge */
+.monitor-warning.serious{background:#b3261e;color:#fff;font-weight:700;animation:monitor-pulse 1s ease-in-out infinite}
+@keyframes monitor-pulse{50%{transform:translateX(-50%) scale(1.03)}}
+.monitor-edge{position:fixed;inset:0;z-index:58;pointer-events:none;box-shadow:inset 0 0 0 6px #e8604f,inset 0 0 40px #e8604f88;animation:monitor-edge 1s ease-in-out infinite}
+@keyframes monitor-edge{50%{opacity:.45}}
+@media(prefers-reduced-motion:reduce){.monitor-warning.serious,.monitor-edge{animation:none}}

@@ -59,6 +59,25 @@ function Finished({ view, onClose, bestBefore = -1 }) {
   </div>;
 }
 
+let alertCtx = null;
+/** A short alert tone made in the browser (no sound file). Created on first use, after the student pressed Start. */
+function playAlert(urgent) {
+  try {
+    alertCtx ??= new (window.AudioContext || window.webkitAudioContext)();
+    if (alertCtx.state === 'suspended') alertCtx.resume().catch(() => {});
+    const now = alertCtx.currentTime;
+    (urgent ? [[988, 0], [740, 0.18], [988, 0.36]] : [[880, 0], [660, 0.2]]).forEach(([freq, at]) => {
+      const osc = alertCtx.createOscillator(), gain = alertCtx.createGain();
+      osc.type = 'square'; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, now + at);
+      gain.gain.exponentialRampToValueAtTime(0.12, now + at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + at + 0.15);
+      osc.connect(gain).connect(alertCtx.destination);
+      osc.start(now + at); osc.stop(now + at + 0.16);
+    });
+  } catch { /* sound isn't essential: the on-screen warning still shows */ }
+}
+
 export default function TestRunner({ test, onClose, bestBefore = -1 }) {
   const [view, setView] = useState(null);
   const [error, setError] = useState('');
@@ -206,8 +225,18 @@ export default function TestRunner({ test, onClose, bestBefore = -1 }) {
 
   const close = () => { leaveFullscreen(); monitorRef.current?.stop(); monitorRef.current = null; onClose(); };
   const cameraReady = !monitoring || (monitorStatus?.ready && seenFace);
-  const warningText = { no_face: 'We can’t see your face. Please stay in front of the camera.', multiple_faces: 'More than one person is in view. You must work on your own.', camera_off: 'Your camera has stopped. Please turn it back on.', talking: 'We can hear talking. Please work quietly on your own.' }[monitorStatus?.warning] ?? null;
+  const warningText = { phone: 'A phone is in view. Put it away now: this is recorded for your teacher.', no_face: 'We can’t see your face. Please stay in front of the camera.', multiple_faces: 'More than one person is in view. You must work on your own.', camera_off: 'Your camera has stopped. Please turn it back on.', talking: 'We can hear talking. Please work quietly on your own.' }[monitorStatus?.warning] ?? null;
   const block = (event) => event.preventDefault();
+
+  // Sound + vibration the moment a warning starts, and again every 6 s while it lasts (so it can't be ignored).
+  const activeWarning = monitoring && running && !warning ? monitorStatus?.warning ?? null : null;
+  useEffect(() => {
+    if (!activeWarning) return undefined;
+    const alert = () => { playAlert(activeWarning === 'phone' || activeWarning === 'multiple_faces'); try { navigator.vibrate?.(activeWarning === 'phone' ? [200, 100, 200] : 200); } catch { /* not supported */ } };
+    alert();
+    const id = setInterval(alert, 6000);
+    return () => clearInterval(id);
+  }, [activeWarning]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <div className="runner" onCopy={block} onCut={block} onContextMenu={block}>
     {!view && <div className="runner-card">
@@ -276,7 +305,8 @@ export default function TestRunner({ test, onClose, bestBefore = -1 }) {
       <video ref={videoRef} muted playsInline autoPlay/>
       <span className={`selfview-dot ${monitorStatus?.warning ? 'warn' : 'ok'}`}>{monitorStatus ? (monitorStatus.warning ? '!' : '●') : ''}</span>
     </div>}
-    {monitoring && running && warningText && !warning && <div className="monitor-warning" role="alert"><AlertTriangle size={18}/>{warningText}</div>}
+    {monitoring && running && warningText && !warning && <div className={`monitor-warning ${monitorStatus?.warning === 'phone' || monitorStatus?.warning === 'multiple_faces' ? 'serious' : ''}`} role="alert"><AlertTriangle size={18}/>{warningText}</div>}
+    {monitoring && running && (monitorStatus?.warning === 'phone' || monitorStatus?.warning === 'multiple_faces') && !warning && <div className="monitor-edge" aria-hidden="true"/>}
 
     {backToFullscreen && running && !warning && <div className="runner-return">
       <button className="btn btn-primary" onClick={() => { setBackToFullscreen(false); enterFullscreen(); }}><Maximize size={17}/>Back to full screen</button>
